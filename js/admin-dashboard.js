@@ -267,7 +267,7 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
+                <td>${producto.descuento && producto.descuento > 0 ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -328,7 +328,7 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
+                <td>${producto.descuento && producto.descuento > 0 ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -1350,7 +1350,32 @@ class AdminDashboard {
     }
     
     editarCliente(id) {
-        this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        const clientes = this.getClientes();
+        const cliente = clientes.find(c => c.id === id);
+        
+        if (!cliente) {
+            this.showNotification('Cliente no encontrado', 'error');
+            return;
+        }
+        
+        // Llenar el modal con los datos del cliente
+        document.getElementById('cedulaCliente').value = cliente.cedula;
+        document.getElementById('nombreCliente').value = cliente.nombre;
+        document.getElementById('direccionCliente').value = cliente.direccion;
+        document.getElementById('telefonoCliente').value = cliente.telefono;
+        document.getElementById('emailCliente').value = cliente.email;
+        
+        // Cambiar el título del modal
+        document.querySelector('#clienteModal .modal-title').textContent = 'Editar Cliente';
+        
+        // Cambiar el botón de guardar
+        const btnGuardar = document.querySelector('#clienteModal .btn-primary');
+        btnGuardar.textContent = 'Actualizar';
+        btnGuardar.onclick = () => this.actualizarCliente(id);
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('clienteModal'));
+        modal.show();
     }
     
     eliminarCliente(id) {
@@ -2637,9 +2662,7 @@ function guardarProveedor() {
     adminDashboard.guardarProveedor();
 }
 
-function guardarCliente() {
-    adminDashboard.guardarCliente();
-}
+
 
 function guardarReparacion() {
     adminDashboard.guardarReparacion();

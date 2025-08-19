@@ -768,7 +768,7 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
+                <td>${producto.descuento && producto.descuento > 0 ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -801,7 +801,7 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
+                <td>${producto.descuento && producto.descuento > 0 ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -896,6 +896,64 @@ class VendedorDashboard {
         this.cerrarModal('clienteModal');
         this.loadClientes();
         this.loadClientesVenta();
+    }
+    
+    actualizarCliente(id) {
+        const cedula = document.getElementById('cedulaCliente').value;
+        const nombre = document.getElementById('nombreCliente').value;
+        const direccion = document.getElementById('direccionCliente').value;
+        const telefono = document.getElementById('telefonoCliente').value;
+        const email = document.getElementById('emailCliente').value;
+        
+        if (!cedula || !nombre || !direccion || !telefono || !email) {
+            this.showNotification('Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        // Verificar que la cédula no esté duplicada (excluyendo el cliente actual)
+        const clientes = this.getClientes();
+        const clienteExistente = clientes.find(c => c.cedula === cedula && c.id !== id);
+        if (clienteExistente) {
+            this.showNotification('La cédula/RUC ya está registrado por otro cliente', 'danger');
+            return;
+        }
+        
+        // Actualizar el cliente
+        const index = clientes.findIndex(c => c.id === id);
+        if (index === -1) {
+            this.showNotification('Cliente no encontrado', 'error');
+            return;
+        }
+        
+        clientes[index] = {
+            ...clientes[index],
+            cedula,
+            nombre,
+            direccion,
+            telefono,
+            email,
+            fechaActualizacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('clientes', JSON.stringify(clientes));
+        
+        this.showNotification('Cliente actualizado exitosamente', 'success');
+        this.cerrarModal('clienteModal');
+        this.loadClientes();
+        this.loadClientesVenta();
+        
+        // Restaurar el modal a su estado original
+        this.restaurarModalCliente();
+    }
+    
+    restaurarModalCliente() {
+        // Restaurar el título del modal
+        document.querySelector('#clienteModal .modal-title').textContent = 'Nuevo Cliente';
+        
+        // Restaurar el botón de guardar
+        const btnGuardar = document.querySelector('#clienteModal .btn-primary');
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.onclick = () => this.guardarCliente();
     }
     
     // Gestión de Reparaciones
@@ -1750,6 +1808,11 @@ class VendedorDashboard {
         if (form) {
             form.reset();
         }
+        
+        // Restaurar modal de cliente si es necesario
+        if (modalId === 'clienteModal') {
+            this.restaurarModalCliente();
+        }
     }
     
     showNotification(message, type = 'info') {
@@ -2006,9 +2069,7 @@ function showTab(tabName) {
     }
 }
 
-function guardarCliente() {
-    vendedorDashboard.guardarCliente();
-}
+
 
 function guardarReparacion() {
     vendedorDashboard.guardarReparacion();
