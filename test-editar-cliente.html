@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Editar Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-edit me-2"></i>Test - Funcionalidad de Editar Cliente</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Instrucciones:</strong> Esta página prueba la funcionalidad de edición de clientes en el módulo de administrador.
+                        </div>
+                        
+                        <h5>Pasos para probar:</h5>
+                        <ol>
+                            <li>Ir al <a href="admin-dashboard.html" target="_blank">Dashboard de Administrador</a></li>
+                            <li>Navegar a la sección "Clientes"</li>
+                            <li>Crear un cliente de prueba usando el botón "Nuevo Cliente"</li>
+                            <li>Hacer clic en el botón de editar (ícono de lápiz) en la tabla de clientes</li>
+                            <li>Verificar que el modal se abra con los datos del cliente</li>
+                            <li>Modificar algún campo y hacer clic en "Actualizar"</li>
+                            <li>Verificar que los cambios se guarden correctamente</li>
+                        </ol>
+                        
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Funcionalidades implementadas:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Modal de edición que se abre al hacer clic en "Editar"</li>
+                                <li>Formulario pre-llenado con los datos del cliente</li>
+                                <li>Validación de campos obligatorios</li>
+                                <li>Validación de cédula/RUC duplicada (excluyendo el cliente actual)</li>
+                                <li>Actualización de datos en localStorage</li>
+                                <li>Notificaciones de éxito/error</li>
+                                <li>Reseteo automático del modal al cerrar</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> Asegúrate de tener datos de prueba en el localStorage antes de probar la funcionalidad.
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="admin-dashboard.html" class="btn btn-primary btn-lg">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Ir al Dashboard de Administrador
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

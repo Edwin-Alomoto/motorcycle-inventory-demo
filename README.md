@@ -12,6 +12,7 @@ Un sistema web completo para la gestión de inventario, ventas y reparaciones de
 - ✅ Gestión de productos y proveedores
 - ✅ Carga masiva de datos desde archivos CSV
 - ✅ Gestión de clientes y mecánicos
+- ✅ Edición de clientes con modal pre-llenado
 - ✅ Reportes de ventas, inventario y reparaciones
 - ✅ Sistema de notificaciones
 - ✅ Dashboard con estadísticas en tiempo real
@@ -172,6 +173,9 @@ sistema-reparacion-motos/
 ### UC4 - Registrar Cliente (Vendedor/Administrador)
 - ✅ RF4.1: Ingreso de datos del cliente
 - ✅ RF4.2: Validación de identificación única
+- ✅ RF4.3: Edición de datos del cliente existente
+- ✅ RF4.4: Modal de edición con formulario pre-llenado
+- ✅ RF4.5: Validación de cédula/RUC duplicada en edición
 
 ### UC5 - Buscar Producto (Vendedor)
 - ✅ RF5.1: Búsqueda por nombre o código
@@ -230,6 +234,13 @@ El sistema utiliza **LocalStorage** del navegador para simular una base de datos
 - Generación de recibos de reparación
 - Captura de fotografías de evidencia (iniciales y finales)
 - Vista previa y gestión de fotos
+
+### Gestión de Clientes
+- Registro de nuevos clientes
+- Edición de clientes existentes con modal pre-llenado
+- Validación de cédula/RUC única
+- Búsqueda y filtrado de clientes
+- Historial de actualizaciones
 
 ### Sistema de Notificaciones
 - Notificaciones en tiempo real

@@ -277,7 +277,7 @@
                                         <th>Nombre</th>
                                         <th>Descripción</th>
                                         <th>Precio</th>
-                                        <th>Descuento</th>
+                                        <th>Descuentos</th>
                                         <th>Stock</th>
                                         <th>Estado</th>
                                         <th>Proveedor</th>
@@ -760,8 +760,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="descuentoProducto" class="form-label">Descuento</label>
-                                    <input type="number" class="form-control" id="descuentoProducto" step="0.01" value="0" min="0">
+                                    <label for="descuentoMinimoProducto" class="form-label">Descuento Mínimo</label>
+                                    <input type="number" class="form-control" id="descuentoMinimoProducto" step="0.01" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="descuentoMaximoProducto" class="form-label">Descuento Máximo</label>
+                                    <input type="number" class="form-control" id="descuentoMaximoProducto" step="0.01" value="0" min="0">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -1107,7 +1113,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="adminDashboard.guardarCliente()">Guardar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -1370,5 +1376,21 @@
     <script src="js/auth.js"></script>
     <script src="js/foto-manager.js"></script>
     <script src="js/admin-dashboard.js"></script>
+    
+    <script>
+        // Inicializar el dashboard cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Crear instancia del dashboard
+            window.adminDashboard = new AdminDashboard();
+            
+            // Evento para resetear el modal de cliente cuando se cierre
+            const clienteModal = document.getElementById('clienteModal');
+            clienteModal.addEventListener('hidden.bs.modal', () => {
+                if (window.adminDashboard) {
+                    window.adminDashboard.resetearModalCliente();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
