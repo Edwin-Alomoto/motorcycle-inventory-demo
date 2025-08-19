@@ -493,18 +493,25 @@ class VendedorDashboard {
     }
     
     finalizarVenta() {
-        const cliente = document.getElementById('clienteVenta').value;
-        
-        if (!cliente) {
-            this.showNotification('Por favor seleccione un cliente', 'warning');
-            return;
-        }
+        const cliente = document.getElementById('clienteVenta')?.value;
         
         if (this.productosSeleccionados.length === 0) {
             this.showNotification('Por favor agregue productos a la venta', 'warning');
             return;
         }
         
+        // Si no hay cliente seleccionado, mostrar modal para capturar datos
+        if (!cliente) {
+            const modal = new bootstrap.Modal(document.getElementById('clienteFacturaModal'));
+            modal.show();
+            return;
+        }
+        
+        // Si hay cliente, procesar venta normalmente
+        this.procesarVentaConCliente(cliente);
+    }
+    
+    procesarVentaConCliente(cliente) {
         const subtotal = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
         const iva = subtotal * 0.12;
         const total = subtotal + iva;
@@ -538,6 +545,149 @@ class VendedorDashboard {
         this.actualizarResumenVenta();
         
         this.showNotification('Venta finalizada exitosamente', 'success');
+        this.loadDashboardData();
+    }
+    
+    confirmarVentaSinCliente() {
+        const nombreCliente = document.getElementById('nombreClienteFactura').value.trim();
+        const cedulaCliente = document.getElementById('cedulaClienteFactura').value.trim();
+        
+        if (!nombreCliente) {
+            this.showNotification('Por favor ingrese el nombre para la factura', 'warning');
+            return;
+        }
+        
+        // Crear nombre completo del cliente
+        let clienteCompleto = nombreCliente;
+        if (cedulaCliente) {
+            clienteCompleto += ` - ${cedulaCliente}`;
+        }
+        
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('clienteFacturaModal'));
+        modal.hide();
+        
+        // Procesar venta con el cliente capturado
+        this.procesarVentaConCliente(clienteCompleto);
+        
+        // Limpiar formulario
+        document.getElementById('clienteFacturaForm').reset();
+    }
+    
+    verDetalleProducto(productoId) {
+        const productos = this.getProductos();
+        const producto = productos.find(p => p.id === productoId);
+        
+        if (!producto) {
+            this.showNotification('Producto no encontrado', 'error');
+            return;
+        }
+        
+        // Llenar el modal con los datos del producto
+        document.getElementById('detalleCodigoProducto').textContent = producto.codigo;
+        document.getElementById('detalleNombreProducto').textContent = producto.nombre;
+        document.getElementById('detalleDescripcionProducto').textContent = producto.descripcion;
+        document.getElementById('detallePrecioProducto').textContent = `$${producto.precio}`;
+        document.getElementById('detalleDescuentoProducto').textContent = producto.descuento ? `$${producto.descuento}` : 'Sin descuento';
+        document.getElementById('detalleStockProducto').textContent = `${producto.stock} unidades`;
+        document.getElementById('detalleProveedorProducto').textContent = producto.proveedor || 'No especificado';
+        document.getElementById('detalleFechaProducto').textContent = producto.fechaCreacion ? 
+            new Date(producto.fechaCreacion).toLocaleDateString('es-ES') : 'No especificada';
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('detalleProductoModal'));
+        modal.show();
+    }
+    
+    editarReparacion(reparacionId) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        // Llenar el formulario con los datos de la reparación
+        document.getElementById('clienteReparacion').value = reparacion.cliente;
+        document.getElementById('mecanicoReparacion').value = reparacion.mecanico;
+        document.getElementById('marcaMoto').value = reparacion.marca;
+        document.getElementById('modeloMoto').value = reparacion.modelo;
+        document.getElementById('fallaReparacion').value = reparacion.falla;
+        
+        // Guardar ID de la reparación que se está editando
+        this.reparacionEditando = reparacionId;
+        
+        // Cambiar título del modal y botón
+        document.querySelector('#reparacionModal .modal-title').textContent = 'Editar Reparación';
+        document.querySelector('#reparacionModal .btn-primary').textContent = 'Actualizar';
+        document.querySelector('#reparacionModal .btn-primary').onclick = () => this.actualizarReparacion();
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('reparacionModal'));
+        modal.show();
+    }
+    
+    actualizarReparacion() {
+        const cliente = document.getElementById('clienteReparacion').value;
+        const mecanico = document.getElementById('mecanicoReparacion').value;
+        const marca = document.getElementById('marcaMoto').value;
+        const modelo = document.getElementById('modeloMoto').value;
+        const falla = document.getElementById('fallaReparacion').value;
+        
+        if (!cliente || !mecanico || !marca || !modelo || !falla) {
+            this.showNotification('Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        const reparaciones = this.getReparaciones();
+        const index = reparaciones.findIndex(r => r.id === this.reparacionEditando);
+        
+        if (index === -1) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        // Actualizar datos de la reparación
+        reparaciones[index].cliente = cliente;
+        reparaciones[index].mecanico = mecanico;
+        reparaciones[index].marca = marca;
+        reparaciones[index].modelo = modelo;
+        reparaciones[index].falla = falla;
+        
+        localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+        
+        this.showNotification('Reparación actualizada exitosamente', 'success');
+        this.cerrarModal('reparacionModal');
+        this.loadReparaciones();
+        
+        // Restaurar modal a su estado original
+        this.reparacionEditando = null;
+        document.querySelector('#reparacionModal .modal-title').textContent = 'Nueva Reparación';
+        document.querySelector('#reparacionModal .btn-primary').textContent = 'Guardar';
+        document.querySelector('#reparacionModal .btn-primary').onclick = () => this.guardarReparacion();
+    }
+    
+
+    
+    eliminarReparacion(reparacionId) {
+        if (!confirm('¿Está seguro de que desea eliminar esta reparación? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        
+        const reparaciones = this.getReparaciones();
+        const index = reparaciones.findIndex(r => r.id === reparacionId);
+        
+        if (index === -1) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        reparaciones.splice(index, 1);
+        localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+        
+        this.showNotification('Reparación eliminada exitosamente', 'success');
+        this.loadReparaciones();
         this.loadDashboardData();
     }
     
@@ -625,6 +775,11 @@ class VendedorDashboard {
                     </span>
                 </td>
                 <td>${producto.proveedor}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" onclick="vendedorDashboard.verDetalleProducto('${producto.id}')" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
             `;
             tbody.appendChild(row);
         });
@@ -653,6 +808,11 @@ class VendedorDashboard {
                     </span>
                 </td>
                 <td>${producto.proveedor}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" onclick="vendedorDashboard.verDetalleProducto('${producto.id}')" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
             `;
             tbody.appendChild(row);
         });
@@ -760,15 +920,23 @@ class VendedorDashboard {
                 <td>${reparacion.mecanico}</td>
                 <td>${new Date(reparacion.fecha).toLocaleDateString()}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="vendedorDashboard.registrarMateriales('${reparacion.id}')">
-                        <i class="fas fa-tools"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success" onclick="vendedorDashboard.finalizarReparacion('${reparacion.id}')">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="vendedorDashboard.verFotosReparacion('${reparacion.id}')" title="Ver fotos">
-                        <i class="fas fa-camera"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="vendedorDashboard.registrarMateriales('${reparacion.id}')" title="Registrar materiales">
+                            <i class="fas fa-tools"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="vendedorDashboard.verFotosReparacion('${reparacion.id}')" title="Ver fotos">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="vendedorDashboard.finalizarReparacion('${reparacion.id}')" title="Finalizar reparación">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="vendedorDashboard.editarReparacion('${reparacion.id}')" title="Editar reparación">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="vendedorDashboard.eliminarReparacion('${reparacion.id}')" title="Eliminar reparación">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(row);
@@ -1848,6 +2016,10 @@ function guardarReparacion() {
 
 function finalizarVenta() {
     vendedorDashboard.finalizarVenta();
+}
+
+function confirmarVentaSinCliente() {
+    vendedorDashboard.confirmarVentaSinCliente();
 }
 
 function filtrarFacturas() {

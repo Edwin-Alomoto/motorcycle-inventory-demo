@@ -297,6 +297,13 @@
                                         <strong id="total">$0.00</strong>
                                     </div>
                                 </div>
+                                
+                                <!-- Botón Finalizar Venta -->
+                                <div class="mt-4">
+                                    <button class="btn btn-success w-100" onclick="finalizarVenta()">
+                                        <i class="fas fa-check me-2"></i>Finalizar Venta
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -323,6 +330,7 @@
                                         <th>Descuento</th>
                                         <th>Stock</th>
                                         <th>Proveedor</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productosCatalogoTable">
@@ -481,7 +489,7 @@
 
     <!-- Modal Reparación -->
     <div class="modal fade" id="reparacionModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Nueva Reparación</h5>
@@ -677,6 +685,147 @@
                 <button type="button" class="btn btn-secondary" onclick="cerrarCamara()">
                     <i class="fas fa-times me-1"></i>Cancelar
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalles del Producto -->
+    <div class="modal fade" id="detalleProductoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-box me-2"></i>
+                        Detalles del Producto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="fas fa-barcode me-2"></i>Código del Producto
+                                </label>
+                                <p class="form-control-plaintext" id="detalleCodigoProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="fas fa-tag me-2"></i>Nombre del Producto
+                                </label>
+                                <p class="form-control-plaintext" id="detalleNombreProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="fas fa-align-left me-2"></i>Descripción
+                                </label>
+                                <p class="form-control-plaintext" id="detalleDescripcionProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-primary">
+                                    <i class="fas fa-truck me-2"></i>Proveedor
+                                </label>
+                                <p class="form-control-plaintext" id="detalleProveedorProducto"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-success">
+                                    <i class="fas fa-dollar-sign me-2"></i>Precio
+                                </label>
+                                <p class="form-control-plaintext fs-5 fw-bold text-success" id="detallePrecioProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-warning">
+                                    <i class="fas fa-percentage me-2"></i>Descuento
+                                </label>
+                                <p class="form-control-plaintext" id="detalleDescuentoProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-info">
+                                    <i class="fas fa-boxes me-2"></i>Stock Actual
+                                </label>
+                                <p class="form-control-plaintext" id="detalleStockProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">
+                                    <i class="fas fa-calendar me-2"></i>Fecha de Creación
+                                </label>
+                                <p class="form-control-plaintext" id="detalleFechaProducto"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información adicional -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Información del Producto:</strong> Este producto está disponible en el inventario del sistema.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cliente para Factura -->
+    <div class="modal fade" id="clienteFacturaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Cliente no Seleccionado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Atención:</strong> No se ha seleccionado un cliente para la factura.
+                    </div>
+                    
+                    <form id="clienteFacturaForm">
+                        <div class="mb-3">
+                            <label for="nombreClienteFactura" class="form-label">
+                                <i class="fas fa-user me-2"></i>Nombre para la Factura
+                            </label>
+                            <input type="text" class="form-control" id="nombreClienteFactura" 
+                                   placeholder="Ej: Cliente General, Consumidor Final, etc." required>
+                            <div class="form-text">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Ingrese el nombre que aparecerá en la factura
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cedulaClienteFactura" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Cédula/RUC (Opcional)
+                            </label>
+                            <input type="text" class="form-control" id="cedulaClienteFactura" 
+                                   placeholder="Ej: 9999999999">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Puede dejar vacío si es cliente general
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="confirmarVentaSinCliente()">
+                        <i class="fas fa-check me-1"></i>Finalizar Venta
+                    </button>
+                </div>
             </div>
         </div>
     </div>

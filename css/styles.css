@@ -601,6 +601,142 @@ h6 { font-size: 1rem; }
     padding: 0.5rem;
 }
 
+/* Modal de cliente para factura */
+#clienteFacturaModal .modal-header {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+    border-bottom: none;
+}
+
+#clienteFacturaModal .btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+#clienteFacturaModal .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+#clienteFacturaModal .alert-warning {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+
+/* Botón finalizar venta en detalles */
+.btn-success.w-100 {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    font-weight: 600;
+    padding: 12px 20px;
+}
+
+.btn-success.w-100:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Modal de detalles del producto */
+#detalleProductoModal .modal-header {
+    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    border-bottom: none;
+}
+
+#detalleProductoModal .form-control-plaintext {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+#detalleProductoModal .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+#detalleProductoModal .btn-outline-info {
+    border-color: var(--info-color);
+    color: var(--info-color);
+    transition: all 0.3s ease;
+}
+
+#detalleProductoModal .btn-outline-info:hover {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Estilos para botones de acciones en tabla de reparaciones */
+.btn-group .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+    margin: 0 1px;
+    transition: all 0.2s ease;
+}
+
+.btn-group .btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-group .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.btn-group .btn-outline-success:hover {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.btn-group .btn-outline-info:hover {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+    color: white;
+}
+
+.btn-group .btn-outline-warning:hover {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: white;
+}
+
+.btn-group .btn-outline-secondary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-group .btn-outline-danger:hover {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: white;
+}
+
+/* Responsive para botones de acciones */
+@media (max-width: 768px) {
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .btn-group .btn-sm {
+        margin: 0;
+        border-radius: 0.2rem;
+    }
+}
+
 /* Estilos para tablas - Modernas */
 .table-container {
     background: white;
