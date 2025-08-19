@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stock Mínimo - Reparación Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Test Stock Mínimo y Máximo - Cambios Aplicados
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-thumbs-up me-2"></i>¡Campos de Stock Mínimo y Máximo Implementados!</h6>
+                            <p class="mb-0">Se han agregado exitosamente los campos de stock mínimo y máximo al formulario de productos.</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Formulario de Productos</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Campo "Stock Actual" (antes "Stock")</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Nuevo campo "Stock Mínimo"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Nuevo campo "Stock Máximo"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Validación de campos requeridos</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Almacenamiento en LocalStorage</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Tabla de Productos</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Nueva columna "Stock Mín."</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Nueva columna "Estado"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Indicadores visuales de estado</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Alertas automáticas por stock bajo</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Estados de Stock Implementados</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>Crítico</h6>
+                                            <p class="small">Stock ≤ Stock Mínimo</p>
+                                            <span class="badge bg-danger">Crítico</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-exclamation-triangle text-warning me-2"></i>Bajo</h6>
+                                            <p class="small">Stock ≤ Stock Mínimo × 1.5</p>
+                                            <span class="badge bg-warning">Bajo</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-check text-success me-2"></i>Normal</h6>
+                                            <p class="small">Stock entre rangos</p>
+                                            <span class="badge bg-success">Normal</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-arrow-up text-info me-2"></i>Alto</h6>
+                                            <p class="small">Stock ≥ Stock Máximo × 0.9</p>
+                                            <span class="badge bg-info">Alto</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-database me-2"></i>Datos de Ejemplo Actualizados</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-battery-quarter text-danger me-2"></i>Stock Crítico</h6>
+                                            <ul class="small">
+                                                <li>Batería 12V 7Ah: 3 unidades (mín: 5)</li>
+                                                <li>Llanta Trasera: 2 unidades (mín: 5)</li>
+                                                <li>Aceite Transmisión: 1 unidad (mín: 8)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-battery-half text-warning me-2"></i>Stock Bajo</h6>
+                                            <ul class="small">
+                                                <li>Filtro de Aire: 4 unidades (mín: 6)</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-battery-full text-success me-2"></i>Stock Normal</h6>
+                                            <ul class="small">
+                                                <li>Aceite Motor 4T: 45 unidades (mín: 10)</li>
+                                                <li>Bujía NGK: 60 unidades (mín: 25)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-lightbulb me-2"></i>¿Cómo Verificar?</h6>
+                                <ol class="mb-0">
+                                    <li>Ve a <code>populate.html</code> y haz clic en "Poblar Datos"</li>
+                                    <li>Inicia sesión como Administrador</li>
+                                    <li>Navega a "Productos" en el menú lateral</li>
+                                    <li>Verifica las nuevas columnas "Stock Mín." y "Estado"</li>
+                                    <li>Observa los indicadores de color para diferentes estados</li>
+                                    <li>Haz clic en "Nuevo Producto" para ver el formulario actualizado</li>
+                                    <li>Verifica las notificaciones de stock crítico en el dashboard</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="index.html" class="btn btn-primary">
+                                <i class="fas fa-home me-1"></i>Ir al Login
+                            </a>
+                            <a href="populate.html" class="btn btn-success">
+                                <i class="fas fa-database me-1"></i>Poblar Datos
+                            </a>
+                            <a href="admin-dashboard.html" class="btn btn-info">
+                                <i class="fas fa-user-cog me-1"></i>Dashboard Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

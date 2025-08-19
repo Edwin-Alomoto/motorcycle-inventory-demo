@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Productos No Encontrados - Reparación Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Test Productos No Encontrados en Inventario
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-lightbulb me-2"></i>¡Nueva Funcionalidad Implementada!</h6>
+                            <p class="mb-0">Se ha implementado la funcionalidad para agregar productos que no están en el inventario y crear solicitudes de adquisición automáticamente.</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Funcionalidad del Vendedor</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Botón "Producto no encontrado en inventario"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Formulario para datos del producto nuevo</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Creación automática de solicitud de adquisición</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Notificación automática al administrador</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Material marcado como "Pendiente de Adquisición"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Visualización diferenciada en la lista de materiales</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-user-cog me-2"></i>Funcionalidad del Administrador</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Nueva sección "Solicitudes de Adquisición"</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Tabla con todas las solicitudes pendientes</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Filtros por estado de solicitud</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Acciones para aprobar/rechazar solicitudes</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Notificaciones automáticas de nuevas solicitudes</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Integración con el sistema de notificaciones</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Flujo de Trabajo Completo</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-tools text-warning me-2"></i>1. Registrar Materiales</h6>
+                                            <p class="small">El vendedor va a "Reparaciones" y hace clic en el botón de herramientas para registrar materiales.</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-search text-info me-2"></i>2. Producto No Encontrado</h6>
+                                            <p class="small">Si el producto no está en el inventario, hace clic en "Producto no encontrado en inventario".</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-edit text-success me-2"></i>3. Completar Datos</h6>
+                                            <p class="small">Completa el formulario con nombre, descripción, precio estimado y proveedor sugerido.</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-paper-plane text-primary me-2"></i>4. Solicitud Automática</h6>
+                                            <p class="small">El sistema crea automáticamente una solicitud de adquisición y notifica al administrador.</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-bell text-warning me-2"></i>5. Notificación Admin</h6>
+                                            <p class="small">El administrador recibe una notificación en tiempo real sobre la nueva solicitud.</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-list text-info me-2"></i>6. Revisar Solicitudes</h6>
+                                            <p class="small">El administrador va a "Solicitudes de Adquisición" para revisar las solicitudes pendientes.</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-check text-success me-2"></i>7. Aprobar/Rechazar</h6>
+                                            <p class="small">Puede aprobar la solicitud para proceder con la adquisición o rechazarla.</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6><i class="fas fa-shopping-cart text-primary me-2"></i>8. Proceso de Compra</h6>
+                                            <p class="small">Una vez aprobada, se puede proceder con la compra del producto al proveedor.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>¿Cómo Verificar?</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="mb-0">
+                                        <li>Ve a <code>populate.html</code> y haz clic en "Poblar Datos"</li>
+                                        <li>Inicia sesión como Vendedor</li>
+                                        <li>Navega a "Reparaciones" en el menú lateral</li>
+                                        <li>Busca una reparación y haz clic en el botón <i class="fas fa-tools"></i> (herramientas)</li>
+                                        <li>En el modal "Registrar Materiales", haz clic en "Producto no encontrado en inventario"</li>
+                                        <li>Verifica que aparece un formulario con campos para:
+                                            <ul>
+                                                <li>Nombre del Producto</li>
+                                                <li>Descripción</li>
+                                                <li>Precio Estimado</li>
+                                                <li>Proveedor Sugerido</li>
+                                            </ul>
+                                        </li>
+                                        <li>Completa los campos y haz clic en "Agregar Material"</li>
+                                        <li>Verifica que:
+                                            <ul>
+                                                <li>Aparece una notificación de éxito</li>
+                                                <li>El material aparece en la lista con badge "Pendiente de Adquisición"</li>
+                                                <li>El material tiene fondo amarillo claro</li>
+                                            </ul>
+                                        </li>
+                                        <li>Cierra sesión e inicia como Administrador</li>
+                                        <li>Verifica que aparece una notificación sobre la nueva solicitud de adquisición</li>
+                                        <li>Ve a "Solicitudes de Adquisición" en el menú lateral</li>
+                                        <li>Verifica que aparece la solicitud en la tabla con todos los datos</li>
+                                        <li>Prueba los filtros por estado</li>
+                                        <li>Prueba las acciones de aprobar/rechazar solicitud</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-code me-2"></i>Detalles Técnicos</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-database text-info me-2"></i>Almacenamiento de Datos</h6>
+                                            <ul class="small">
+                                                <li><code>solicitudesAdquisicion</code> - Array en LocalStorage</li>
+                                                <li><code>materiales.tipo</code> - "inventario" o "pendiente"</li>
+                                                <li><code>notificaciones.destinatario</code> - "admin" para notificaciones específicas</li>
+                                                <li><code>solicitudId</code> - Referencia entre material y solicitud</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-palette text-warning me-2"></i>Indicadores Visuales</h6>
+                                            <ul class="small">
+                                                <li>Badge "Pendiente de Adquisición" en materiales</li>
+                                                <li>Fondo amarillo claro para materiales pendientes</li>
+                                                <li>Borde amarillo en contenedores de materiales</li>
+                                                <li>Icono de reloj para indicar espera</li>
+                                                <li>Alertas informativas en formularios</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="index.html" class="btn btn-primary">
+                                <i class="fas fa-home me-1"></i>Ir al Login
+                            </a>
+                            <a href="populate.html" class="btn btn-success">
+                                <i class="fas fa-database me-1"></i>Poblar Datos
+                            </a>
+                            <a href="vendedor-dashboard.html" class="btn btn-warning">
+                                <i class="fas fa-user me-1"></i>Dashboard Vendedor
+                            </a>
+                            <a href="admin-dashboard.html" class="btn btn-info">
+                                <i class="fas fa-user-cog me-1"></i>Dashboard Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

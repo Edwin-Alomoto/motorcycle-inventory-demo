@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Vendedor - Sistema de Gestión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-motorcycle fa-2x mb-2"></i>
+                        <h5>Sistema de Gestión</h5>
+                        <small class="text-muted">Panel Vendedor</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-section="dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="ventas">
+                                <i class="fas fa-shopping-cart"></i> Ventas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="productos">
+                                <i class="fas fa-box"></i> Productos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="clientes">
+                                <i class="fas fa-users"></i> Clientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="reparaciones">
+                                <i class="fas fa-tools"></i> Reparaciones
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="facturas">
+                                <i class="fas fa-file-invoice"></i> Facturas
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom main-header">
+                    <h1 class="h2" id="pageTitle">Dashboard</h1>
+                    <div class="user-info d-flex align-items-center">
+                        <!-- Notificaciones -->
+                        <div class="dropdown me-3">
+                            <button class="btn btn-link position-relative" type="button" id="notificacionesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificacionesBadge" style="display: none;">
+                                    0
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" id="notificacionesList" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                                <li><h6 class="dropdown-header">Notificaciones</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li id="notificacionesEmpty">
+                                    <span class="dropdown-item-text text-muted">No hay notificaciones</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <span id="userName">Vendedor</span>
+                        <div class="user-avatar" id="userAvatar">V</div>
+                        <button class="btn btn-outline-danger btn-sm" onclick="Auth.logout()">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="content-section">
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="stat-card">
+                                <div class="d-flex">
+                                    <div class="content-wrapper">
+                                        <h5 class="text-muted">Ventas del Día</h5>
+                                        <h3 id="ventasDia">$0</h3>
+                                    </div>
+                                    <div class="icon bg-success">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="stat-card">
+                                <div class="d-flex">
+                                    <div class="content-wrapper">
+                                        <h5 class="text-muted">Reparaciones Pendientes</h5>
+                                        <h3 id="reparacionesPendientes">0</h3>
+                                    </div>
+                                    <div class="icon bg-warning">
+                                        <i class="fas fa-tools"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="stat-card">
+                                <div class="d-flex">
+                                    <div class="content-wrapper">
+                                        <h5 class="text-muted">Clientes Registrados</h5>
+                                        <h3 id="clientesRegistrados">0</h3>
+                                    </div>
+                                    <div class="icon bg-info">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="stat-card">
+                                <div class="d-flex">
+                                    <div class="content-wrapper">
+                                        <h5 class="text-muted">Productos Disponibles</h5>
+                                        <h3 id="productosDisponibles">0</h3>
+                                    </div>
+                                    <div class="icon bg-primary">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Gestión con Pestañas -->
+                    <div class="dashboard-section mb-4">
+                        <div class="section-header">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h4 class="section-title">
+                                        <i class="fas fa-chart-line me-2"></i>
+                                        Gestión del Sistema
+                                    </h4>
+                                    <p class="section-description">Administra ventas y reparaciones desde un solo lugar</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="tab-buttons">
+                                        <button class="tab-btn active" onclick="showTab('ventas')">
+                                            <i class="fas fa-shopping-cart me-2"></i>
+                                            Ventas
+                                        </button>
+                                        <button class="tab-btn" onclick="showTab('reparaciones')">
+                                            <i class="fas fa-tools me-2"></i>
+                                            Reparaciones
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido de Ventas -->
+                        <div id="tab-ventas" class="tab-content active">
+                            <div class="table-container">
+                                <div class="d-flex justify-content-between align-items-center p-3">
+                                    <h5>Ventas del Mes</h5>
+                                    <button class="btn btn-primary btn-sm" onclick="showSection('ventas')">
+                                        <i class="fas fa-plus me-1"></i>Nueva Venta
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Factura</th>
+                                                <th>Cliente</th>
+                                                <th>Total</th>
+                                                <th>Fecha</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ventasRecientes">
+                                            <!-- Se llenará dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido de Reparaciones -->
+                        <div id="tab-reparaciones" class="tab-content">
+                            <div class="table-container">
+                                <div class="d-flex justify-content-between align-items-center p-3">
+                                    <h5>Reparaciones Activas</h5>
+                                    <button class="btn btn-primary btn-sm" onclick="showSection('reparaciones')">
+                                        <i class="fas fa-eye me-1"></i>Ver Todas
+                                    </button>
+                                </div>
+                                <div id="reparacionesActivas">
+                                    <!-- Se llenará dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ventas Section -->
+                <div id="ventas-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button class="btn btn-success" onclick="finalizarVenta()">
+                            <i class="fas fa-check"></i> Finalizar Venta
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="form-container">
+                                <h4>Seleccionar Productos</h4>
+                                <div class="search-container mb-3">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="form-control" id="searchProductosVenta" placeholder="Buscar productos...">
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Producto</th>
+                                                <th>Precio</th>
+                                                <th>Stock</th>
+                                                <th>Cantidad</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="productosVentaTable">
+                                            <!-- Se llenará dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <div class="form-container">
+                                <h4>Detalles de la Venta</h4>
+                                
+                                <div class="mb-3">
+                                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#clienteModal">
+                                        <i class="fas fa-plus"></i> Nuevo Cliente
+                                    </button>
+                                </div>
+                                
+                                <!-- Sección de Materiales de Reparación -->
+                                <div class="mb-3" id="materialesReparacionSection" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-tools me-2 text-primary"></i>
+                                        Materiales de Reparación Disponibles
+                                    </label>
+                                    <div class="alert alert-info alert-sm">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <small>Materiales registrados en reparaciones del cliente seleccionado</small>
+                                    </div>
+                                    <div id="materialesReparacionCliente" class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Productos Seleccionados</label>
+                                    <div id="productosSeleccionados">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
+                                </div>
+                                
+                                <div class="border-top pt-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotal">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>IVA (12%):</span>
+                                        <span id="iva">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Total:</strong>
+                                        <strong id="total">$0.00</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos Section -->
+                <div id="productos-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-control" id="searchProductosCatalogo" placeholder="Buscar productos...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Proveedor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productosCatalogoTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clientes Section -->
+                <div id="clientes-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal">
+                            <i class="fas fa-plus"></i> Nuevo Cliente
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Cédula/RUC</th>
+                                        <th>Nombre</th>
+                                        <th>Dirección</th>
+                                        <th>Teléfono</th>
+                                        <th>Email</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientesTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reparaciones Section -->
+                <div id="reparaciones-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reparacionModal">
+                            <i class="fas fa-plus"></i> Nueva Reparación
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Moto</th>
+                                        <th>Falla</th>
+                                        <th>Estado</th>
+                                        <th>Mecánico</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reparacionesTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Facturas Section -->
+                <div id="facturas-section" class="content-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex gap-2">
+                            <input type="date" class="form-control" id="fechaInicioFacturas">
+                            <input type="date" class="form-control" id="fechaFinFacturas">
+                            <button class="btn btn-primary" onclick="filtrarFacturas()">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Subtotal</th>
+                                        <th>IVA</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facturasTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal Cliente -->
+    <div class="modal fade" id="clienteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="clienteForm">
+                        <div class="mb-3">
+                            <label for="cedulaCliente" class="form-label">Cédula/RUC</label>
+                            <input type="text" class="form-control" id="cedulaCliente" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nombreCliente" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombreCliente" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccionCliente" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="direccionCliente" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="telefonoCliente" class="form-label">Teléfono</label>
+                                    <input type="text" class="form-control" id="telefonoCliente" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="emailCliente" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="emailCliente" required>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reparación -->
+    <div class="modal fade" id="reparacionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Reparación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reparacionForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="clienteReparacion" class="form-label">Cliente / CI / RUC</label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="clienteReparacion" placeholder="Buscar cliente..." required>
+                                        <div id="clientesDropdown" class="position-absolute w-100 bg-white border rounded shadow-sm" style="top: 100%; left: 0; z-index: 1000; max-height: 200px; overflow-y: auto; display: none;">
+                                            <!-- Los resultados de búsqueda se mostrarán aquí -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mecanicoReparacion" class="form-label">Mecánico</label>
+                                    <select class="form-select" id="mecanicoReparacion" required>
+                                        <option value="">Seleccionar mecánico</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="marcaMoto" class="form-label">Marca</label>
+                                    <input type="text" class="form-control" id="marcaMoto" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="modeloMoto" class="form-label">Modelo</label>
+                                    <input type="text" class="form-control" id="modeloMoto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fallaReparacion" class="form-label">Falla Reportada</label>
+                            <textarea class="form-control" id="fallaReparacion" rows="3" required></textarea>
+                        </div>
+                        
+                                                 <!-- Sección de Fotografías de Evidencia -->
+                         <div class="mb-3">
+                             <label class="form-label">Fotografías de Evidencia</label>
+                             <div class="card">
+                                 <div class="card-header">
+                                     <h6 class="mb-0">Fotos Iniciales</h6>
+                                 </div>
+                                 <div class="card-body">
+                                     <div class="mb-2">
+                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="capturarFoto('fotosIniciales')">
+                                             <i class="fas fa-camera me-1"></i>Capturar Foto
+                                         </button>
+                                                                                   <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarArchivo('fotosIniciales')">
+                                              <i class="fas fa-upload me-1"></i>Subir Imágenes
+                                          </button>
+                                     </div>
+                                     <div id="fotosIniciales" class="fotos-container">
+                                         <!-- Las fotos se mostrarán aquí -->
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarReparacion()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Materiales Reparación -->
+    <div class="modal fade" id="materialesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Materiales</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                                         <form id="materialesForm">
+                         <div class="mb-3">
+                             <label for="productoMaterial" class="form-label">Producto/Material</label>
+                             <select class="form-select" id="productoMaterial">
+                                 <option value="">Seleccionar producto</option>
+                             </select>
+                             <div class="form-text">
+                                 <i class="fas fa-info-circle me-1"></i>
+                                 Si el producto no está en la lista, puede agregarlo manualmente
+                             </div>
+                         </div>
+                         
+                         <!-- Sección para producto no encontrado -->
+                         <div class="mb-3" id="productoNoEncontradoSection" style="display: none;">
+                             <div class="alert alert-warning">
+                                 <i class="fas fa-exclamation-triangle me-2"></i>
+                                 <strong>Producto no encontrado en inventario</strong>
+                                 <p class="mb-2 mt-2">Complete los datos del producto para solicitar su adquisición:</p>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="nuevoProductoNombre" class="form-label">Nombre del Producto</label>
+                                         <input type="text" class="form-control" id="nuevoProductoNombre" placeholder="Ej: Filtro de aceite Honda">
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="nuevoProductoDescripcion" class="form-label">Descripción</label>
+                                         <input type="text" class="form-control" id="nuevoProductoDescripcion" placeholder="Descripción del producto">
+                                     </div>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="nuevoProductoPrecio" class="form-label">Precio Estimado</label>
+                                         <input type="number" class="form-control" id="nuevoProductoPrecio" step="0.01" placeholder="0.00">
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="nuevoProductoProveedor" class="form-label">Proveedor Sugerido</label>
+                                         <input type="text" class="form-control" id="nuevoProductoProveedor" placeholder="Nombre del proveedor">
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         
+                         <div class="row">
+                             <div class="col-md-6">
+                                 <div class="mb-3">
+                                     <label for="cantidadMaterial" class="form-label">Cantidad</label>
+                                     <input type="number" class="form-control" id="cantidadMaterial" min="1" required>
+                                 </div>
+                             </div>
+                             <div class="col-md-6">
+                                 <div class="mb-3">
+                                     <label for="precioMaterial" class="form-label">Precio Unitario</label>
+                                     <input type="number" class="form-control" id="precioMaterial" step="0.01" readonly>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="mb-3">
+                             <label for="observacionesMaterial" class="form-label">Observaciones</label>
+                             <textarea class="form-control" id="observacionesMaterial" rows="3"></textarea>
+                         </div>
+                         
+                         <!-- Botón para buscar producto no encontrado -->
+                         <div class="mb-3">
+                             <button type="button" class="btn btn-outline-warning" id="btnProductoNoEncontrado">
+                                 <i class="fas fa-plus-circle me-1"></i>
+                                 Producto no encontrado en inventario
+                             </button>
+                         </div>
+                     </form>
+                    
+                    <div class="mt-4">
+                        <h6>Materiales Registrados</h6>
+                        <div id="materialesRegistrados">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="agregarMaterial()">Agregar Material</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cámara -->
+    <div id="cameraModal" class="camera-modal" style="display: none;">
+        <div class="camera-container">
+            <div class="text-center mb-3">
+                <h5>Capturar Fotografía</h5>
+            </div>
+            <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+            <canvas id="cameraCanvas" class="camera-canvas"></canvas>
+            <div class="text-center">
+                <button type="button" class="btn btn-primary me-2" onclick="tomarFoto()">
+                    <i class="fas fa-camera me-1"></i>Tomar Foto
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="cerrarCamara()">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Vista Previa de Foto -->
+    <div class="modal fade" id="fotoPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vista Previa de Foto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="fotoPreview" class="foto-preview" src="" alt="Vista previa">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarFoto()">Guardar Foto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/foto-manager.js"></script>
+    <script src="js/vendedor-dashboard.js"></script>
+</body>
+</html>

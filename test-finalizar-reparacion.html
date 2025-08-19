@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Finalizar Reparación - Reparación Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Test Finalizar Reparación - Modal con Fotos Finales
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-thumbs-up me-2"></i>¡Modal de Finalización Implementado Exitosamente!</h6>
+                            <p class="mb-0">Se ha modificado el proceso de finalización de reparaciones para incluir un modal que permite capturar fotos finales como evidencia.</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Nuevas Funcionalidades</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Modal de confirmación de finalización</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Captura de fotos finales obligatoria</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Validación de evidencia fotográfica</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Información detallada de la reparación</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Generación de recibo con evidencia</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Proceso de Finalización</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ol class="mb-0">
+                                            <li>Hacer clic en el botón ✓ (check) de una reparación</li>
+                                            <li>Se abre modal de confirmación</li>
+                                            <li>Capturar o subir fotos finales</li>
+                                            <li>Confirmar finalización</li>
+                                            <li>Se genera recibo con evidencia</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Características del Modal</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-info text-info me-2"></i>Información de Reparación</h6>
+                                            <p class="small">Muestra detalles completos: cliente, moto, mecánico, falla y estado actual.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-camera text-warning me-2"></i>Captura de Fotos</h6>
+                                            <p class="small">Permite capturar fotos con cámara o subir archivos como evidencia final.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-shield-alt text-success me-2"></i>Validación</h6>
+                                            <p class="small">Requiere al menos una foto final antes de permitir la finalización.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>¿Cómo Verificar?</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="mb-0">
+                                        <li>Ve a <code>populate.html</code> y haz clic en "Poblar Datos"</li>
+                                        <li>Inicia sesión como Administrador o Vendedor</li>
+                                        <li>Navega a "Reparaciones" en el menú lateral</li>
+                                        <li>Busca una reparación con estado "pendiente" o "en proceso"</li>
+                                        <li>Haz clic en el botón ✓ (check) de esa reparación</li>
+                                        <li>Verifica que se abre un modal con:
+                                            <ul>
+                                                <li>Información de la reparación</li>
+                                                <li>Sección para fotos finales</li>
+                                                <li>Botones "Capturar Foto" y "Subir Archivo"</li>
+                                                <li>Mensaje de que las fotos son obligatorias</li>
+                                            </ul>
+                                        </li>
+                                        <li>Intenta finalizar sin fotos (debe mostrar advertencia)</li>
+                                        <li>Captura o sube al menos una foto final</li>
+                                        <li>Haz clic en "Finalizar Reparación"</li>
+                                        <li>Verifica que:
+                                            <ul>
+                                                <li>Se cierra el modal</li>
+                                                <li>Aparece notificación de éxito</li>
+                                                <li>El estado cambia a "finalizada"</li>
+                                                <li>Se descarga automáticamente el recibo PDF</li>
+                                            </ul>
+                                        </li>
+                                        <li>Haz clic en el botón de cámara para ver las fotos</li>
+                                        <li>Verifica que aparecen tanto las fotos iniciales como las finales</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Recibo Mejorado</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="small">El recibo PDF ahora incluye una sección de "EVIDENCIA FOTOGRÁFICA" que muestra:</p>
+                                    <ul class="small">
+                                        <li>Número de fotos iniciales capturadas</li>
+                                        <li>Número de fotos finales capturadas</li>
+                                        <li>Información completa de materiales utilizados (si existen)</li>
+                                        <li>Datos del cliente, moto y mecánico</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="index.html" class="btn btn-primary">
+                                <i class="fas fa-home me-1"></i>Ir al Login
+                            </a>
+                            <a href="populate.html" class="btn btn-success">
+                                <i class="fas fa-database me-1"></i>Poblar Datos
+                            </a>
+                            <a href="admin-dashboard.html" class="btn btn-info">
+                                <i class="fas fa-user-cog me-1"></i>Dashboard Admin
+                            </a>
+                            <a href="vendedor-dashboard.html" class="btn btn-warning">
+                                <i class="fas fa-user me-1"></i>Dashboard Vendedor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

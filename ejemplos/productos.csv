@@ -1,0 +1,16 @@
+codigo,nombre,descripcion,precio,stock,proveedor
+PROD001,Aceite de Motor 4T,Aceite sintético para motos 4T 1L,15.50,50,Aceites Pro
+PROD002,Filtro de Aire,Filtro de aire de alta calidad,8.75,30,Filtros Max
+PROD003,Pastillas de Freno,Par de pastillas de freno delantero,12.00,25,Frenos Seguros
+PROD004,Cadena de Transmisión,Cadena de transmisión 520,45.00,15,Transmisiones Rápidas
+PROD005,Bujía NGK,Bujía NGK CR8E para motos,5.25,100,Bujías Elite
+PROD006,Aceite de Transmisión,Aceite para transmisión 80W-90,18.00,20,Aceites Pro
+PROD007,Filtro de Aceite,Filtro de aceite universal,6.50,40,Filtros Max
+PROD008,Neumático Trasero,Neumático trasero 130/70-17,85.00,10,Neumáticos Plus
+PROD009,Neumático Delantero,Neumático delantero 110/70-17,75.00,10,Neumáticos Plus
+PROD010,Batería 12V,Batería 12V 7Ah para motos,65.00,8,Baterías Power
+PROD011,Espejo Retrovisor,Espejo retrovisor izquierdo universal,22.00,15,Accesorios Moto
+PROD012,Manillar Completo,Manillar completo con empuñaduras,35.00,5,Accesorios Moto
+PROD013,Luces LED,Kit de luces LED para moto,28.50,12,Iluminación Pro
+PROD014,Guantes de Moto,Guantes de cuero para moto,45.00,20,Protección Total
+PROD015,Casco Integral,Casco integral certificado,120.00,8,Protección Total

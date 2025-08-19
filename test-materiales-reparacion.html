@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Materiales de Reparación - Reparación Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-tools me-2"></i>
+                            Test Materiales de Reparación en Ventas
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-thumbs-up me-2"></i>¡Funcionalidad Implementada Exitosamente!</h6>
+                            <p class="mb-0">Se ha implementado la funcionalidad para mostrar los materiales de reparación cuando se selecciona un cliente en el detalle de ventas.</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Nueva Funcionalidad</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Detección automática de cliente seleccionado</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Búsqueda de reparaciones del cliente</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Extracción de materiales registrados</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Visualización organizada de materiales</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Botón para agregar a la venta</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Validación de stock disponible</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Información Mostrada</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Nombre del material/producto</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Moto asociada a la reparación</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Cantidad utilizada</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Precio unitario</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Fecha de la reparación</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Estado de la reparación</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Observaciones (si existen)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Flujo de Trabajo</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-user text-info me-2"></i>1. Selección de Cliente</h6>
+                                            <p class="small">El vendedor selecciona un cliente del dropdown en "Detalles de la Venta".</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-search text-warning me-2"></i>2. Búsqueda Automática</h6>
+                                            <p class="small">El sistema busca automáticamente todas las reparaciones del cliente seleccionado.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-list text-success me-2"></i>3. Visualización</h6>
+                                            <p class="small">Se muestran todos los materiales registrados en las reparaciones del cliente.</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-plus text-primary me-2"></i>4. Agregar a Venta</h6>
+                                            <p class="small">El vendedor puede hacer clic en el botón "+" para agregar el material a la venta actual.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-check-circle text-success me-2"></i>5. Validación</h6>
+                                            <p class="small">El sistema valida que el producto esté disponible en el inventario y tenga stock.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-shopping-cart text-info me-2"></i>6. Venta Finalizada</h6>
+                                            <p class="small">El material se agrega a la lista de productos seleccionados para la venta.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>¿Cómo Verificar?</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="mb-0">
+                                        <li>Ve a <code>populate.html</code> y haz clic en "Poblar Datos"</li>
+                                        <li>Inicia sesión como Vendedor</li>
+                                        <li>Navega a "Nueva Venta" en el menú lateral</li>
+                                        <li>En la sección "Detalles de la Venta", selecciona un cliente del dropdown</li>
+                                        <li>Verifica que aparece una nueva sección "Materiales de Reparación Disponibles"</li>
+                                        <li>Observa que se muestran los materiales con:
+                                            <ul>
+                                                <li>Nombre del material/producto</li>
+                                                <li>Moto asociada (marca y modelo)</li>
+                                                <li>Cantidad y precio</li>
+                                                <li>Fecha de la reparación</li>
+                                                <li>Estado de la reparación (badge de color)</li>
+                                                <li>Botón "+" para agregar a la venta</li>
+                                            </ul>
+                                        </li>
+                                        <li>Haz clic en el botón "+" de un material</li>
+                                        <li>Verifica que:
+                                            <ul>
+                                                <li>Aparece una notificación de éxito</li>
+                                                <li>El material se agrega a "Productos Seleccionados"</li>
+                                                <li>Se actualiza el subtotal, IVA y total</li>
+                                            </ul>
+                                        </li>
+                                        <li>Prueba con diferentes clientes para ver diferentes materiales</li>
+                                        <li>Prueba con un cliente que no tenga reparaciones (no debe aparecer la sección)</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-code me-2"></i>Detalles Técnicos</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-database text-info me-2"></i>Funciones Implementadas</h6>
+                                            <ul class="small">
+                                                <li><code>cargarMaterialesReparacionCliente()</code> - Busca y filtra materiales</li>
+                                                <li><code>renderizarMaterialesReparacion()</code> - Muestra los materiales</li>
+                                                <li><code>agregarMaterialAVenta()</code> - Agrega material a la venta</li>
+                                                <li>Event listener en cambio de cliente</li>
+                                                <li>Validación de stock disponible</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-palette text-warning me-2"></i>Mejoras Visuales</h6>
+                                            <ul class="small">
+                                                <li>Sección con gradiente de fondo</li>
+                                                <li>Cards con efectos hover</li>
+                                                <li>Badges de estado con colores</li>
+                                                <li>Scroll personalizado</li>
+                                                <li>Diseño responsive</li>
+                                                <li>Iconos descriptivos</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="index.html" class="btn btn-primary">
+                                <i class="fas fa-home me-1"></i>Ir al Login
+                            </a>
+                            <a href="populate.html" class="btn btn-success">
+                                <i class="fas fa-database me-1"></i>Poblar Datos
+                            </a>
+                            <a href="vendedor-dashboard.html" class="btn btn-warning">
+                                <i class="fas fa-user me-1"></i>Dashboard Vendedor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

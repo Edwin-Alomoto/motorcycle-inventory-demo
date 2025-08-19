@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo Tailwind CSS - Sistema de Gestión</title>
+    <link href="css/tailwind-output.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-motorcycle text-3xl"></i>
+                    <h1 class="text-2xl font-bold">Sistema de Gestión</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Bienvenido, Admin</span>
+                    <button class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Productos Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Total Productos</p>
+                        <p class="text-3xl font-bold text-gray-800">156</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-box text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-semibold">
+                        <i class="fas fa-arrow-up mr-1"></i>+12%
+                    </span>
+                    <span class="text-gray-600 text-sm ml-2">vs mes anterior</span>
+                </div>
+            </div>
+
+            <!-- Ventas Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Ventas del Mes</p>
+                        <p class="text-3xl font-bold text-gray-800">$12,450</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-semibold">
+                        <i class="fas fa-arrow-up mr-1"></i>+8%
+                    </span>
+                    <span class="text-gray-600 text-sm ml-2">vs mes anterior</span>
+                </div>
+            </div>
+
+            <!-- Reparaciones Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Reparaciones</p>
+                        <p class="text-3xl font-bold text-gray-800">23</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <i class="fas fa-wrench text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-yellow-600 text-sm font-semibold">
+                        <i class="fas fa-clock mr-1"></i>5 pendientes
+                    </span>
+                </div>
+            </div>
+
+            <!-- Clientes Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Clientes</p>
+                        <p class="text-3xl font-bold text-gray-800">89</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i class="fas fa-users text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-semibold">
+                        <i class="fas fa-plus mr-1"></i>+3 nuevos
+                    </span>
+                    <span class="text-gray-600 text-sm ml-2">esta semana</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Botones con Tailwind CSS</h2>
+            <div class="flex flex-wrap gap-4">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Agregar Producto
+                </button>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-shopping-cart mr-2"></i>Nueva Venta
+                </button>
+                <button class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-wrench mr-2"></i>Nueva Reparación
+                </button>
+                <button class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>Agregar Cliente
+                </button>
+                <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>Exportar
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800">Productos Recientes</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Producto
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Código
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Precio
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Stock
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <i class="fas fa-box text-blue-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Aceite de Motor 4T</div>
+                                        <div class="text-sm text-gray-500">Aceite sintético 1L</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PROD001</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$15.50</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    50 unidades
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Disponible
+                                </span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                                            <i class="fas fa-filter text-yellow-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Filtro de Aire</div>
+                                        <div class="text-sm text-gray-500">Filtro de alta calidad</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PROD002</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$8.75</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    5 unidades
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Stock Bajo
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400">
+                Sistema de Gestión de Inventario y Reparaciones de Motos - 
+                Desarrollado con Tailwind CSS
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

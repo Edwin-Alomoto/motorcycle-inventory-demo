@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stock Mínimo Removido - Reparación Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Test Stock Mínimo Removido - Cambios Aplicados
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-thumbs-up me-2"></i>¡Columna "Stock Mín." Eliminada Exitosamente!</h6>
+                            <p class="mb-0">Se ha removido visualmente la columna "Stock Mín." de la tabla de gestión de productos.</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Cambios Realizados</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Columna "Stock Mín." removida del HTML</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Columna "Stock Mín." removida del JavaScript</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Mantiene funcionalidad de estado de stock</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Datos de stock mínimo siguen almacenados</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Nueva Estructura de Tabla</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Código</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Nombre</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Descripción</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Precio</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Stock</li>
+                                            <li><i class="fas fa-times text-danger me-2"></i><del>Stock Mín.</del> (Eliminado)</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Estado</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Proveedor</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Acciones</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Funcionalidad Preservada</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-database text-info me-2"></i>Almacenamiento</h6>
+                                            <p class="small">Los datos de stock mínimo y máximo siguen almacenándose en LocalStorage para cálculos internos.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-calculator text-warning me-2"></i>Cálculos</h6>
+                                            <p class="small">El estado de stock (Crítico, Bajo, Normal, Alto) se sigue calculando usando los valores de stock mínimo.</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6><i class="fas fa-bell text-danger me-2"></i>Alertas</h6>
+                                            <p class="small">Las notificaciones de stock bajo siguen funcionando basándose en los valores de stock mínimo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>¿Cómo Verificar?</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="mb-0">
+                                        <li>Ve a <code>populate.html</code> y haz clic en "Poblar Datos"</li>
+                                        <li>Inicia sesión como Administrador</li>
+                                        <li>Navega a "Productos" en el menú lateral</li>
+                                        <li>Verifica que la columna "Stock Mín." ya no aparece en la tabla</li>
+                                        <li>Observa que la columna "Estado" sigue mostrando los indicadores de color</li>
+                                        <li>Haz clic en "Nuevo Producto" para verificar que el formulario sigue pidiendo stock mínimo y máximo</li>
+                                        <li>Verifica que las notificaciones de stock crítico siguen funcionando</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="index.html" class="btn btn-primary">
+                                <i class="fas fa-home me-1"></i>Ir al Login
+                            </a>
+                            <a href="populate.html" class="btn btn-success">
+                                <i class="fas fa-database me-1"></i>Poblar Datos
+                            </a>
+                            <a href="admin-dashboard.html" class="btn btn-info">
+                                <i class="fas fa-user-cog me-1"></i>Dashboard Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
