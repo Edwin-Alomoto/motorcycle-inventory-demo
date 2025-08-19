@@ -252,9 +252,14 @@
                 <!-- Productos Section -->
                 <div id="productos-section" class="content-section" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productoModal">
-                            <i class="fas fa-plus"></i> Nuevo Producto
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productoModal">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </button>
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#cargaMasivaProductosModal">
+                                <i class="fas fa-upload"></i> Carga Masiva
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="table-container">
@@ -272,6 +277,7 @@
                                         <th>Nombre</th>
                                         <th>Descripción</th>
                                         <th>Precio</th>
+                                        <th>Descuento</th>
                                         <th>Stock</th>
                                         <th>Estado</th>
                                         <th>Proveedor</th>
@@ -289,9 +295,14 @@
                 <!-- Proveedores Section -->
                 <div id="proveedores-section" class="content-section" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#proveedorModal">
-                            <i class="fas fa-plus"></i> Nuevo Proveedor
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#proveedorModal">
+                                <i class="fas fa-plus"></i> Nuevo Proveedor
+                            </button>
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#cargaMasivaProveedoresModal">
+                                <i class="fas fa-upload"></i> Carga Masiva
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="table-container">
@@ -407,31 +418,7 @@
                 <!-- Carga Masiva Section -->
                 <div id="carga-masiva-section" class="content-section" style="display: none;">
                     <div class="row">
-                        <div class="col-lg-4">
-                            <div class="form-container">
-                                <h3>Carga Masiva de Productos</h3>
-                                <form id="cargaProductosForm">
-                                    <div class="mb-3">
-                                        <label for="archivoProductos" class="form-label">Archivo CSV/Excel</label>
-                                        <input type="file" class="form-control" id="archivoProductos" accept=".csv,.xlsx,.xls">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Cargar Productos</button>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="form-container">
-                                <h3>Carga Masiva de Proveedores</h3>
-                                <form id="cargaProveedoresForm">
-                                    <div class="mb-3">
-                                        <label for="archivoProveedores" class="form-label">Archivo CSV/Excel</label>
-                                        <input type="file" class="form-control" id="archivoProveedores" accept=".csv,.xlsx,.xls">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Cargar Proveedores</button>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-12">
                             <div class="form-container">
                                 <h3>Lista de Compras</h3>
                                 <form id="listaComprasForm">
@@ -773,6 +760,12 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
+                                    <label for="descuentoProducto" class="form-label">Descuento</label>
+                                    <input type="number" class="form-control" id="descuentoProducto" step="0.01" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
                                     <label for="stockProducto" class="form-label">Stock Actual</label>
                                     <input type="number" class="form-control" id="stockProducto" required>
                                 </div>
@@ -783,6 +776,8 @@
                                     <input type="number" class="form-control" id="stockMinimoProducto" required>
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="stockMaximoProducto" class="form-label">Stock Máximo</label>
@@ -805,6 +800,222 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva de Proveedores -->
+    <div class="modal fade" id="cargaMasivaProveedoresModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Carga Masiva de Proveedores
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Sube un archivo CSV con los proveedores que deseas cargar al sistema.
+                    </div>
+                    
+                    <form id="cargaMasivaProveedoresForm">
+                        <div class="mb-3">
+                            <label for="archivoProveedoresMasivo" class="form-label">Archivo CSV/Excel</label>
+                            <input type="file" class="form-control" id="archivoProveedoresMasivo" accept=".csv,.xlsx,.xls" required>
+                            <div class="form-text">Formatos soportados: CSV, Excel (.xlsx, .xls)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Formato esperado del archivo:</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>RUC</th>
+                                            <th>Nombre</th>
+                                            <th>Dirección</th>
+                                            <th>Teléfono</th>
+                                            <th>Email</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>12345678901</td>
+                                            <td>Distribuidora Motos</td>
+                                            <td>Av. Principal 123</td>
+                                            <td>0987654321</td>
+                                            <td>contacto@distribuidora.com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>98765432109</td>
+                                            <td>Repuestos SA</td>
+                                            <td>Calle Secundaria 456</td>
+                                            <td>0123456789</td>
+                                            <td>info@repuestos.com</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="procesarCargaMasivaProveedores()">
+                        <i class="fas fa-upload me-1"></i>Cargar Proveedores
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva de Productos -->
+    <div class="modal fade" id="cargaMasivaProductosModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Carga Masiva de Productos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Sube un archivo CSV con los productos que deseas cargar al sistema.
+                    </div>
+                    
+                    <form id="cargaMasivaProductosForm">
+                        <div class="mb-3">
+                            <label for="archivoProductosMasivo" class="form-label">Archivo CSV/Excel</label>
+                            <input type="file" class="form-control" id="archivoProductosMasivo" accept=".csv,.xlsx,.xls" required>
+                            <div class="form-text">Formatos soportados: CSV, Excel (.xlsx, .xls)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Formato esperado del archivo:</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Proveedor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PROD001</td>
+                                            <td>Aceite 4T</td>
+                                            <td>Aceite sintético 1L</td>
+                                            <td>15.99</td>
+                                            <td>25</td>
+                                            <td>Distribuidora Motos</td>
+                                        </tr>
+                                        <tr>
+                                            <td>PROD002</td>
+                                            <td>Filtro Aire</td>
+                                            <td>Filtro de aire universal</td>
+                                            <td>8.50</td>
+                                            <td>50</td>
+                                            <td>Repuestos SA</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="procesarCargaMasivaProductos()">
+                        <i class="fas fa-upload me-1"></i>Cargar Productos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="eliminarProductoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <div class="producto-info-container">
+                        <h6 class="mb-3">¿Está seguro de eliminar el siguiente producto?</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-barcode me-2 text-primary"></i>Código:</strong><br>
+                                    <span id="eliminarProductoCodigo" class="text-muted"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-tag me-2 text-primary"></i>Nombre:</strong><br>
+                                    <span id="eliminarProductoNombre" class="text-muted"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-dollar-sign me-2 text-primary"></i>Precio:</strong><br>
+                                    <span id="eliminarProductoPrecio" class="text-muted"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-boxes me-2 text-primary"></i>Stock:</strong><br>
+                                    <span id="eliminarProductoStock" class="text-muted"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-building me-2 text-primary"></i>Proveedor:</strong><br>
+                                    <span id="eliminarProductoProveedor" class="text-muted"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong><i class="fas fa-calendar me-2 text-primary"></i>Fecha Creación:</strong><br>
+                                    <span id="eliminarProductoFecha" class="text-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmarEliminarProducto">
+                        <i class="fas fa-trash me-1"></i>Eliminar Producto
+                    </button>
                 </div>
             </div>
         </div>

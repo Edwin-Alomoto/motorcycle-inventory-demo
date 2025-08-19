@@ -152,6 +152,14 @@ class AdminDashboard {
             });
         }
         
+        // Evento para resetear modal de productos cuando se cierre
+        const productoModal = document.getElementById('productoModal');
+        if (productoModal) {
+            productoModal.addEventListener('hidden.bs.modal', () => {
+                this.resetearModalProducto();
+            });
+        }
+        
         // Formularios
         this.setupFormListeners();
     }
@@ -259,6 +267,7 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
+                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -319,6 +328,7 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
+                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -348,6 +358,7 @@ class AdminDashboard {
         const nombre = document.getElementById('nombreProducto').value;
         const descripcion = document.getElementById('descripcionProducto').value;
         const precio = parseFloat(document.getElementById('precioProducto').value);
+        const descuento = parseFloat(document.getElementById('descuentoProducto').value) || 0;
         const stock = parseInt(document.getElementById('stockProducto').value);
         const stockMinimo = parseInt(document.getElementById('stockMinimoProducto').value);
         const stockMaximo = parseInt(document.getElementById('stockMaximoProducto').value);
@@ -371,6 +382,7 @@ class AdminDashboard {
             nombre,
             descripcion,
             precio,
+            descuento,
             stock,
             stockMinimo,
             stockMaximo,
@@ -711,7 +723,7 @@ class AdminDashboard {
     
     // Carga Masiva
     cargarProductosMasivo() {
-        const fileInput = document.getElementById('archivoProductos');
+        const fileInput = document.getElementById('archivoProductosMasivo');
         const file = fileInput.files[0];
         
         if (!file) {
@@ -727,40 +739,68 @@ class AdminDashboard {
                 const headers = lines[0].split(',');
                 
                 let productosCargados = 0;
+                let productosDuplicados = 0;
+                
                 for (let i = 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
                         const values = lines[i].split(',');
+                        const codigo = values[0]?.trim();
+                        
+                        // Verificar si el código ya existe
+                        const productos = this.getProductos();
+                        const productoExistente = productos.find(p => p.codigo === codigo);
+                        
+                        if (productoExistente) {
+                            productosDuplicados++;
+                            continue; // Saltar productos duplicados
+                        }
+                        
                         const producto = {
                             id: Date.now().toString() + i,
-                            codigo: values[0]?.trim(),
+                            codigo: codigo,
                             nombre: values[1]?.trim(),
                             descripcion: values[2]?.trim(),
                             precio: parseFloat(values[3]) || 0,
+                            descuento: 0, // Valor por defecto
                             stock: parseInt(values[4]) || 0,
+                            stockMinimo: 5, // Valor por defecto
+                            stockMaximo: 100, // Valor por defecto
                             proveedor: values[5]?.trim(),
                             fechaCreacion: new Date().toISOString()
                         };
                         
-                        const productos = this.getProductos();
                         productos.push(producto);
                         localStorage.setItem('productos', JSON.stringify(productos));
                         productosCargados++;
                     }
                 }
                 
-                this.showNotification(`${productosCargados} productos cargados exitosamente`, 'success');
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('cargaMasivaProductosModal'));
+                modal.hide();
+                
+                // Mostrar notificación con resultados
+                let mensaje = `${productosCargados} productos cargados exitosamente`;
+                if (productosDuplicados > 0) {
+                    mensaje += `. ${productosDuplicados} productos duplicados fueron omitidos`;
+                }
+                
+                this.showNotification(mensaje, 'success');
                 this.loadProductos();
                 this.loadDashboardData();
                 
+                // Limpiar formulario
+                document.getElementById('cargaMasivaProductosForm').reset();
+                
             } catch (error) {
-                this.showNotification('Error al procesar el archivo', 'danger');
+                this.showNotification('Error al procesar el archivo: ' + error.message, 'danger');
             }
         };
         reader.readAsText(file);
     }
     
     cargarProveedoresMasivo() {
-        const fileInput = document.getElementById('archivoProveedores');
+        const fileInput = document.getElementById('archivoProveedoresMasivo');
         const file = fileInput.files[0];
         
         if (!file) {
@@ -775,12 +815,25 @@ class AdminDashboard {
                 const lines = csv.split('\n');
                 
                 let proveedoresCargados = 0;
+                let proveedoresDuplicados = 0;
+                
                 for (let i = 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
                         const values = lines[i].split(',');
+                        const ruc = values[0]?.trim();
+                        
+                        // Verificar si el RUC ya existe
+                        const proveedores = this.getProveedores();
+                        const proveedorExistente = proveedores.find(p => p.ruc === ruc);
+                        
+                        if (proveedorExistente) {
+                            proveedoresDuplicados++;
+                            continue; // Saltar proveedores duplicados
+                        }
+                        
                         const proveedor = {
                             id: Date.now().toString() + i,
-                            ruc: values[0]?.trim(),
+                            ruc: ruc,
                             nombre: values[1]?.trim(),
                             direccion: values[2]?.trim(),
                             telefono: values[3]?.trim(),
@@ -788,18 +841,30 @@ class AdminDashboard {
                             fechaCreacion: new Date().toISOString()
                         };
                         
-                        const proveedores = this.getProveedores();
                         proveedores.push(proveedor);
                         localStorage.setItem('proveedores', JSON.stringify(proveedores));
                         proveedoresCargados++;
                     }
                 }
                 
-                this.showNotification(`${proveedoresCargados} proveedores cargados exitosamente`, 'success');
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('cargaMasivaProveedoresModal'));
+                modal.hide();
+                
+                // Mostrar notificación con resultados
+                let mensaje = `${proveedoresCargados} proveedores cargados exitosamente`;
+                if (proveedoresDuplicados > 0) {
+                    mensaje += `. ${proveedoresDuplicados} proveedores duplicados fueron omitidos`;
+                }
+                
+                this.showNotification(mensaje, 'success');
                 this.loadProveedores();
                 
+                // Limpiar formulario
+                document.getElementById('cargaMasivaProveedoresForm').reset();
+                
             } catch (error) {
-                this.showNotification('Error al procesar el archivo', 'danger');
+                this.showNotification('Error al procesar el archivo: ' + error.message, 'danger');
             }
         };
         reader.readAsText(file);
@@ -1111,22 +1176,159 @@ class AdminDashboard {
         }, 5000);
     }
     
-    // Métodos para editar y eliminar (placeholder)
+    // Métodos para editar y eliminar productos
     editarProducto(id) {
-        this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        const productos = this.getProductos();
+        const producto = productos.find(p => p.id === id);
+        
+        if (!producto) {
+            this.showNotification('Producto no encontrado', 'error');
+            return;
+        }
+        
+        // Llenar el modal con los datos del producto
+        document.getElementById('codigoProducto').value = producto.codigo;
+        document.getElementById('nombreProducto').value = producto.nombre;
+        document.getElementById('descripcionProducto').value = producto.descripcion || '';
+        document.getElementById('precioProducto').value = producto.precio;
+        document.getElementById('descuentoProducto').value = producto.descuento || 0;
+        document.getElementById('stockProducto').value = producto.stock;
+        document.getElementById('stockMinimoProducto').value = producto.stockMinimo;
+        document.getElementById('stockMaximoProducto').value = producto.stockMaximo;
+        document.getElementById('proveedorProducto').value = producto.proveedor;
+        
+        // Cambiar el título del modal
+        document.querySelector('#productoModal .modal-title').textContent = 'Editar Producto';
+        
+        // Cambiar el botón de guardar
+        const btnGuardar = document.querySelector('#productoModal .btn-primary');
+        btnGuardar.textContent = 'Actualizar';
+        btnGuardar.onclick = () => this.actualizarProducto(id);
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('productoModal'));
+        modal.show();
     }
     
     eliminarProducto(id) {
-        if (confirm('¿Está seguro de eliminar este producto?')) {
-            const productos = this.getProductos();
-            const index = productos.findIndex(p => p.id === id);
-            if (index > -1) {
-                productos.splice(index, 1);
-                localStorage.setItem('productos', JSON.stringify(productos));
-                this.loadProductos();
-                this.loadDashboardData();
-                this.showNotification('Producto eliminado exitosamente', 'success');
-            }
+        const productos = this.getProductos();
+        const producto = productos.find(p => p.id === id);
+        
+        if (!producto) {
+            this.showNotification('Producto no encontrado', 'error');
+            return;
+        }
+        
+        // Llenar el modal de confirmación con los datos del producto
+        document.getElementById('eliminarProductoCodigo').textContent = producto.codigo;
+        document.getElementById('eliminarProductoNombre').textContent = producto.nombre;
+        document.getElementById('eliminarProductoPrecio').textContent = `$${producto.precio}`;
+        document.getElementById('eliminarProductoStock').textContent = producto.stock;
+        document.getElementById('eliminarProductoProveedor').textContent = producto.proveedor;
+        
+        // Formatear fecha de creación
+        const fechaCreacion = producto.fechaCreacion ? new Date(producto.fechaCreacion).toLocaleDateString('es-ES') : 'No disponible';
+        document.getElementById('eliminarProductoFecha').textContent = fechaCreacion;
+        
+        // Configurar el botón de confirmación
+        const btnConfirmar = document.getElementById('confirmarEliminarProducto');
+        btnConfirmar.onclick = () => this.confirmarEliminarProducto(id);
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('eliminarProductoModal'));
+        modal.show();
+    }
+    
+    actualizarProducto(id) {
+        const codigo = document.getElementById('codigoProducto').value;
+        const nombre = document.getElementById('nombreProducto').value;
+        const descripcion = document.getElementById('descripcionProducto').value;
+        const precio = parseFloat(document.getElementById('precioProducto').value);
+        const descuento = parseFloat(document.getElementById('descuentoProducto').value) || 0;
+        const stock = parseInt(document.getElementById('stockProducto').value);
+        const stockMinimo = parseInt(document.getElementById('stockMinimoProducto').value);
+        const stockMaximo = parseInt(document.getElementById('stockMaximoProducto').value);
+        const proveedor = document.getElementById('proveedorProducto').value;
+        
+        if (!codigo || !nombre || !precio || !stock || !stockMinimo || !stockMaximo || !proveedor) {
+            this.showNotification('Por favor complete todos los campos requeridos', 'warning');
+            return;
+        }
+        
+        // Verificar que el código no esté duplicado (excluyendo el producto actual)
+        const productos = this.getProductos();
+        const productoExistente = productos.find(p => p.codigo === codigo && p.id !== id);
+        if (productoExistente) {
+            this.showNotification('El código de producto ya existe', 'danger');
+            return;
+        }
+        
+        // Actualizar el producto
+        const index = productos.findIndex(p => p.id === id);
+        if (index > -1) {
+            productos[index] = {
+                ...productos[index],
+                codigo,
+                nombre,
+                descripcion,
+                precio,
+                descuento,
+                stock,
+                stockMinimo,
+                stockMaximo,
+                proveedor,
+                fechaActualizacion: new Date().toISOString()
+            };
+            
+            localStorage.setItem('productos', JSON.stringify(productos));
+            this.showNotification('Producto actualizado exitosamente', 'success');
+            this.cerrarModal('productoModal');
+            this.loadProductos();
+            this.loadDashboardData();
+            
+            // Restaurar el modal para nuevos productos
+            this.resetearModalProducto();
+        } else {
+            this.showNotification('Producto no encontrado', 'error');
+        }
+    }
+    
+    resetearModalProducto() {
+        // Limpiar formulario
+        document.getElementById('productoForm').reset();
+        
+        // Restaurar título del modal
+        document.querySelector('#productoModal .modal-title').textContent = 'Nuevo Producto';
+        
+        // Restaurar botón de guardar
+        const btnGuardar = document.querySelector('#productoModal .btn-primary');
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.onclick = () => this.guardarProducto();
+    }
+    
+    confirmarEliminarProducto(id) {
+        const productos = this.getProductos();
+        const producto = productos.find(p => p.id === id);
+        
+        if (!producto) {
+            this.showNotification('Producto no encontrado', 'error');
+            return;
+        }
+        
+        // Eliminar el producto
+        const index = productos.findIndex(p => p.id === id);
+        if (index > -1) {
+            productos.splice(index, 1);
+            localStorage.setItem('productos', JSON.stringify(productos));
+            
+            // Cerrar el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('eliminarProductoModal'));
+            modal.hide();
+            
+            // Actualizar interfaz
+            this.loadProductos();
+            this.loadDashboardData();
+            this.showNotification(`Producto "${producto.nombre}" eliminado exitosamente`, 'success');
         }
     }
     
@@ -2413,6 +2615,22 @@ function showTab(tabName) {
 
 function guardarProducto() {
     adminDashboard.guardarProducto();
+}
+
+function actualizarProducto(id) {
+    adminDashboard.actualizarProducto(id);
+}
+
+function confirmarEliminarProducto(id) {
+    adminDashboard.confirmarEliminarProducto(id);
+}
+
+function procesarCargaMasivaProductos() {
+    adminDashboard.cargarProductosMasivo();
+}
+
+function procesarCargaMasivaProveedores() {
+    adminDashboard.cargarProveedoresMasivo();
 }
 
 function guardarProveedor() {

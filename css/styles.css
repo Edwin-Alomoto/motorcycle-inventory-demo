@@ -493,6 +493,114 @@ h6 { font-size: 1rem; }
     }
 }
 
+/* Estilos para modal de confirmación de eliminación */
+.producto-info-container {
+    background: var(--light-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.producto-info-container h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.producto-info-container .mb-2 {
+    margin-bottom: 0.75rem !important;
+}
+
+.producto-info-container strong {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.producto-info-container .text-muted {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: inline-block;
+}
+
+/* Modal de eliminación */
+#eliminarProductoModal .modal-header {
+    background: linear-gradient(135deg, var(--danger-color), #dc3545);
+    border-bottom: none;
+}
+
+#eliminarProductoModal .alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+    color: var(--danger-color);
+}
+
+#eliminarProductoModal .btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #dc3545);
+    border: none;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+#eliminarProductoModal .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Modal de carga masiva de productos */
+#cargaMasivaProductosModal .modal-header {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border-bottom: none;
+}
+
+#cargaMasivaProductosModal .btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+#cargaMasivaProductosModal .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+#cargaMasivaProductosModal .table-sm {
+    font-size: 0.875rem;
+}
+
+#cargaMasivaProductosModal .table-sm th,
+#cargaMasivaProductosModal .table-sm td {
+    padding: 0.5rem;
+}
+
+/* Modal de carga masiva de proveedores */
+#cargaMasivaProveedoresModal .modal-header {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border-bottom: none;
+}
+
+#cargaMasivaProveedoresModal .btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    border: none;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+#cargaMasivaProveedoresModal .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+#cargaMasivaProveedoresModal .table-sm {
+    font-size: 0.875rem;
+}
+
+#cargaMasivaProveedoresModal .table-sm th,
+#cargaMasivaProveedoresModal .table-sm td {
+    padding: 0.5rem;
+}
+
 /* Estilos para tablas - Modernas */
 .table-container {
     background: white;

@@ -618,6 +618,7 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
+                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -645,6 +646,7 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
+                <td>${producto.descuento ? `$${producto.descuento}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
