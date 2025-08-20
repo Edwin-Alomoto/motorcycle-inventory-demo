@@ -1672,3 +1672,151 @@ h6 { font-size: 1rem; }
         max-height: 300px;
     }
 }
+
+/* Estilos para dropdowns de estado de reparaciones */
+.estado-reparacion-select {
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.estado-reparacion-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+    border-color: var(--primary-blue);
+}
+
+/* Colores específicos para cada estado */
+.estado-reparacion-select[data-estado="pendiente"] {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fbbf24;
+}
+
+.estado-reparacion-select[data-estado="en-proceso"] {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+.estado-reparacion-select[data-estado="espera"] {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #f59e0b;
+}
+
+.estado-reparacion-select[data-estado="finalizada"] {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #10b981;
+}
+
+/* Hover effects */
+.estado-reparacion-select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Opciones del dropdown con colores */
+.estado-reparacion-select option[value="pendiente"] {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.estado-reparacion-select option[value="en-proceso"] {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.estado-reparacion-select option[value="espera"] {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.estado-reparacion-select option[value="finalizada"] {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* Estilos para el contenedor de fotos finales */
+.fotos-display-container {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.fotos-display-container:not(:empty) {
+    background-color: white;
+    border-color: #28a745 !important;
+}
+
+.foto-item {
+    display: inline-block;
+    margin: 5px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.foto-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.foto-item img:hover {
+    transform: scale(1.05);
+}
+
+.foto-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(220, 53, 69, 0.9);
+    border-radius: 0 8px 0 8px;
+    padding: 2px;
+}
+
+.foto-overlay button {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+}
+
+.foto-placeholder {
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 5px;
+    background-color: #f8f9fa;
+}
+
+.foto-placeholder:hover {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    transform: translateY(-2px);
+}
+
+.foto-placeholder i {
+    font-size: 24px;
+    color: #6c757d;
+    margin-top: 20px;
+    display: block;
+}
+
+.foto-placeholder span {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+    display: block;
+}

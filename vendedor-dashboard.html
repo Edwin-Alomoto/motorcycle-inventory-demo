@@ -240,6 +240,8 @@
                                                 <th>Precio</th>
                                                 <th>Stock</th>
                                                 <th>Cantidad</th>
+                                                <th>Descuento Mín.</th>
+                                                <th>Descuento Máx.</th>
                                                 <th>Acciones</th>
                                             </tr>
                                         </thead>
@@ -289,6 +291,10 @@
                                         <span id="subtotal">$0.00</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
+                                        <span>Descuento:</span>
+                                        <span id="descuento">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
                                         <span>IVA (12%):</span>
                                         <span id="iva">$0.00</span>
                                     </div>
@@ -327,7 +333,8 @@
                                         <th>Nombre</th>
                                         <th>Descripción</th>
                                         <th>Precio</th>
-                                        <th>Descuento</th>
+                                        <th>Descuento Mín.</th>
+                                        <th>Descuento Máx.</th>
                                         <th>Stock</th>
                                         <th>Proveedor</th>
                                         <th>Acciones</th>
@@ -581,7 +588,7 @@
                                          <form id="materialesForm">
                          <div class="mb-3">
                              <label for="productoMaterial" class="form-label">Producto/Material</label>
-                             <select class="form-select" id="productoMaterial">
+                             <select class="form-select" id="productoMaterial" onchange="vendedorDashboard.actualizarPrecioMaterial()">
                                  <option value="">Seleccionar producto</option>
                              </select>
                              <div class="form-text">
@@ -641,9 +648,36 @@
                                  </div>
                              </div>
                          </div>
-                         <div class="mb-3">
-                             <label for="observacionesMaterial" class="form-label">Observaciones</label>
-                             <textarea class="form-control" id="observacionesMaterial" rows="3"></textarea>
+                         <div class="row">
+                             <div class="col-md-6">
+                                 <div class="mb-3">
+                                     <label class="form-label">Descuento</label>
+                                     <div class="d-flex align-items-center">
+                                         <input type="checkbox" class="form-check-input me-2" 
+                                                id="check_descuento_material" 
+                                                onchange="vendedorDashboard.toggleDescuentoMaterial()">
+                                         <input type="number" class="form-control" 
+                                                id="descuentoMaterial" 
+                                                min="0" max="100" step="0.01"
+                                                value="0" placeholder="%" disabled
+                                                oninput="vendedorDashboard.validarDescuentoMaterial()">
+                                     </div>
+                                     <div class="form-text" id="descuentoMaterialInfo" style="display: none;">
+                                         <i class="fas fa-info-circle me-1 text-primary"></i>
+                                         <small>Descuento máximo permitido: <span id="descuentoMaximoPermitido">20%</span></small>
+                                     </div>
+                                     <div class="text-danger" id="descuentoMaterialError" style="display: none;">
+                                         <i class="fas fa-exclamation-triangle me-1"></i>
+                                         <small id="descuentoErrorTexto"></small>
+                                     </div>
+                                 </div>
+                             </div>
+                             <div class="col-md-6">
+                                 <div class="mb-3">
+                                     <label for="observacionesMaterial" class="form-label">Observaciones</label>
+                                     <textarea class="form-control" id="observacionesMaterial" rows="1"></textarea>
+                                 </div>
+                             </div>
                          </div>
                          
                          <!-- Botón para buscar producto no encontrado -->
@@ -664,7 +698,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" onclick="agregarMaterial()">Agregar Material</button>
+                    <button type="button" class="btn btn-primary" onclick="vendedorDashboard.agregarMaterial()">Agregar Material</button>
                 </div>
             </div>
         </div>
@@ -737,9 +771,15 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-warning">
-                                    <i class="fas fa-percentage me-2"></i>Descuento
+                                    <i class="fas fa-percentage me-2"></i>Descuento Mínimo
                                 </label>
-                                <p class="form-control-plaintext" id="detalleDescuentoProducto"></p>
+                                <p class="form-control-plaintext" id="detalleDescuentoMinimoProducto"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-warning">
+                                    <i class="fas fa-percentage me-2"></i>Descuento Máximo
+                                </label>
+                                <p class="form-control-plaintext" id="detalleDescuentoMaximoProducto"></p>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-info">

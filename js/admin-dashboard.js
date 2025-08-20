@@ -267,10 +267,8 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>
-                    ${producto.descuentoMinimo && producto.descuentoMinimo > 0 ? `Min: $${producto.descuentoMinimo}` : '-'}
-                    ${producto.descuentoMaximo && producto.descuentoMaximo > 0 ? `<br>Max: $${producto.descuentoMaximo}` : ''}
-                </td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -331,10 +329,8 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>
-                    ${producto.descuentoMinimo && producto.descuentoMinimo > 0 ? `Min: $${producto.descuentoMinimo}` : '-'}
-                    ${producto.descuentoMaximo && producto.descuentoMaximo > 0 ? `<br>Max: $${producto.descuentoMaximo}` : ''}
-                </td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -1216,92 +1212,6 @@ class AdminDashboard {
         return clases[estado] || 'pendiente';
     }
     
-    generarHTMLMaterialesUtilizados(materiales) {
-        if (!materiales || materiales.length === 0) {
-            return `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>No se han registrado materiales</strong><br>
-                    <small class="text-muted">Esta reparación no requiere materiales adicionales o aún no se han registrado.</small>
-                </div>
-            `;
-        }
-        
-        let html = `
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th><i class="fas fa-box me-1"></i>Material</th>
-                            <th><i class="fas fa-hashtag me-1"></i>Cantidad</th>
-                            <th><i class="fas fa-dollar-sign me-1"></i>Precio Unit.</th>
-                            <th><i class="fas fa-percentage me-1"></i>Desc.</th>
-                            <th><i class="fas fa-calculator me-1"></i>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        let totalMateriales = 0;
-        let totalDescuentos = 0;
-        
-        materiales.forEach(material => {
-            const subtotalMaterial = material.precio * material.cantidad;
-            const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-            const totalMaterial = subtotalMaterial - descuentoMaterial;
-            totalMateriales += totalMaterial;
-            totalDescuentos += descuentoMaterial;
-            
-            html += `
-                <tr>
-                    <td>
-                        <strong>${material.producto}</strong>
-                        ${material.observaciones ? `<br><small class="text-muted">${material.observaciones}</small>` : ''}
-                    </td>
-                    <td class="text-center">${material.cantidad}</td>
-                    <td class="text-end">$${material.precio.toFixed(2)}</td>
-                    <td class="text-center">
-                        ${material.descuento > 0 ? `<span class="badge bg-success">${material.descuento}%</span>` : '-'}
-                    </td>
-                    <td class="text-end">
-                        <strong>$${totalMaterial.toFixed(2)}</strong>
-                        ${material.descuento > 0 ? `<br><small class="text-success">-$${descuentoMaterial.toFixed(2)}</small>` : ''}
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                    <tfoot class="table-light">
-                        <tr>
-                            <td colspan="4" class="text-end"><strong>Subtotal Materiales:</strong></td>
-                            <td class="text-end"><strong>$${(totalMateriales + totalDescuentos).toFixed(2)}</strong></td>
-                        </tr>
-        `;
-        
-        if (totalDescuentos > 0) {
-            html += `
-                        <tr>
-                            <td colspan="4" class="text-end text-success"><strong>Descuentos:</strong></td>
-                            <td class="text-end text-success"><strong>-$${totalDescuentos.toFixed(2)}</strong></td>
-                        </tr>
-            `;
-        }
-        
-        html += `
-                        <tr class="table-primary">
-                            <td colspan="4" class="text-end"><strong>TOTAL MATERIALES:</strong></td>
-                            <td class="text-end"><strong>$${totalMateriales.toFixed(2)}</strong></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        `;
-        
-        return html;
-    }
-    
     cerrarModal(modalId) {
         const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
         if (modal) {
@@ -1569,7 +1479,7 @@ class AdminDashboard {
         // Crear modal para finalizar reparación con fotos finales
         let modalContent = `
             <div class="modal fade" id="finalizarReparacionModal" tabindex="-1">
-                <div class="modal-dialog modal-md">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title">
@@ -1619,45 +1529,6 @@ class AdminDashboard {
                                 </div>
                             </div>
                             
-                            <!-- Campo de Mano de Obra -->
-                            <div class="mb-4">
-                                <h6 class="mb-3">
-                                    <i class="fas fa-tools me-2 text-primary"></i>
-                                    Costo de Mano de Obra
-                                </h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="manoObraFinal" class="form-label">Costo de Mano de Obra ($)</label>
-                                            <input type="number" class="form-control" id="manoObraFinal" 
-                                                   min="0" step="0.01" placeholder="0.00" required>
-                                            <div class="form-text">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                Ingrese el costo total de la mano de obra
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="observacionesManoObra" class="form-label">Observaciones (Opcional)</label>
-                                            <textarea class="form-control" id="observacionesManoObra" rows="3" 
-                                                      placeholder="Detalles adicionales sobre el trabajo realizado..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Materiales Utilizados -->
-                            <div class="mb-4">
-                                <h6 class="mb-3">
-                                    <i class="fas fa-boxes me-2 text-primary"></i>
-                                    Materiales Utilizados
-                                </h6>
-                                <div id="materialesUtilizadosContainer">
-                                    ${this.generarHTMLMaterialesUtilizados(reparacion.materiales || [])}
-                                </div>
-                            </div>
-                            
                             <hr>
                             
                             <div class="finalizar-reparacion-section">
@@ -1671,7 +1542,7 @@ class AdminDashboard {
                                     Las fotografías finales son obligatorias para completar la reparación.
                                 </div>
                                 
-                                <div id="fotosFinales" class="fotos-container">
+                                <div class="fotos-container" id="fotosFinalesContainer">
                                     <div class="foto-placeholder" onclick="window.fotoManager.capturarFoto('fotosFinales')">
                                         <i class="fas fa-camera"></i>
                                         <span>Capturar<br>Foto</span>
@@ -1726,23 +1597,12 @@ class AdminDashboard {
             return;
         }
         
-        // Verificar mano de obra
-        const manoObra = parseFloat(document.getElementById('manoObraFinal').value);
-        const observacionesManoObra = document.getElementById('observacionesManoObra').value;
-        
-        if (isNaN(manoObra) || manoObra < 0) {
-            this.showNotification('Debe ingresar un costo válido para la mano de obra', 'warning');
-            return;
-        }
-        
         const reparaciones = this.getReparaciones();
         const reparacion = reparaciones.find(r => r.id === reparacionId);
         
         if (reparacion) {
             reparacion.estado = 'finalizada';
             reparacion.fotosFinales = fotosFinales;
-            reparacion.manoObra = manoObra;
-            reparacion.observacionesManoObra = observacionesManoObra;
             reparacion.fechaFinalizacion = new Date().toISOString();
             
             localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
@@ -1777,80 +1637,34 @@ class AdminDashboard {
         doc.text(`Moto: ${reparacion.marca} ${reparacion.modelo}`, 20, 70);
         doc.text(`Mecánico: ${reparacion.mecanico}`, 20, 80);
         
-        let yPosition = 100;
-        let totalMateriales = 0;
-        let totalDescuentos = 0;
-        
         // Materiales si existen
         if (reparacion.materiales && reparacion.materiales.length > 0) {
-            doc.text('MATERIALES UTILIZADOS:', 20, yPosition);
-            yPosition += 10;
+            doc.text('MATERIALES UTILIZADOS:', 20, 100);
+            let y = 110;
+            let totalMateriales = 0;
             
             reparacion.materiales.forEach(material => {
-                const subtotalMaterial = material.precio * material.cantidad;
-                const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-                const totalMaterial = subtotalMaterial - descuentoMaterial;
-                
-                doc.text(`${material.producto}`, 20, yPosition);
-                doc.text(`${material.cantidad} x $${material.precio}`, 120, yPosition);
-                
-                if (material.descuento > 0) {
-                    doc.text(`$${totalMaterial.toFixed(2)}`, 180, yPosition);
-                    yPosition += 5;
-                    doc.setFontSize(8);
-                    doc.text(`Descuento ${material.descuento}%: -$${descuentoMaterial.toFixed(2)}`, 120, yPosition);
-                    doc.setFontSize(12);
-                    totalDescuentos += descuentoMaterial;
-                } else {
-                    doc.text(`$${totalMaterial.toFixed(2)}`, 180, yPosition);
-                }
-                
-                totalMateriales += totalMaterial;
-                yPosition += 10;
+                doc.text(`${material.producto}`, 20, y);
+                doc.text(`${material.cantidad} x $${material.precio}`, 120, y);
+                const subtotal = material.precio * material.cantidad;
+                doc.text(`$${subtotal.toFixed(2)}`, 180, y);
+                totalMateriales += subtotal;
+                y += 10;
             });
             
-            // Subtotal materiales
-            yPosition += 5;
-            doc.text('Subtotal Materiales:', 140, yPosition);
-            doc.text(`$${(totalMateriales + totalDescuentos).toFixed(2)}`, 180, yPosition);
-            
-            if (totalDescuentos > 0) {
-                yPosition += 10;
-                doc.text('Descuentos:', 140, yPosition);
-                doc.text(`-$${totalDescuentos.toFixed(2)}`, 180, yPosition);
-            }
-            
-            yPosition += 10;
+            // Total
+            y += 10;
             doc.setFontSize(14);
-            doc.text('TOTAL MATERIALES:', 140, yPosition);
-            doc.text(`$${totalMateriales.toFixed(2)}`, 180, yPosition);
-            doc.setFontSize(12);
+            doc.text('TOTAL MATERIALES:', 140, y);
+            doc.text(`$${totalMateriales.toFixed(2)}`, 180, y);
         }
-        
-        // Mano de obra
-        yPosition += 20;
-        doc.text('MANO DE OBRA:', 20, yPosition);
-        yPosition += 10;
-        doc.text(`Costo de Mano de Obra: $${(reparacion.manoObra || 0).toFixed(2)}`, 20, yPosition);
-        
-        if (reparacion.observacionesManoObra) {
-            yPosition += 10;
-            doc.text(`Observaciones: ${reparacion.observacionesManoObra}`, 20, yPosition);
-        }
-        
-        // Total general
-        yPosition += 20;
-        const totalGeneral = totalMateriales + (reparacion.manoObra || 0);
-        doc.setFontSize(16);
-        doc.text('TOTAL GENERAL:', 140, yPosition);
-        doc.text(`$${totalGeneral.toFixed(2)}`, 180, yPosition);
         
         // Información de evidencia fotográfica
-        yPosition += 20;
+        const yFinal = reparacion.materiales && reparacion.materiales.length > 0 ? 140 : 100;
         doc.setFontSize(12);
-        doc.text('EVIDENCIA FOTOGRÁFICA:', 20, yPosition);
-        doc.text(`Fotos iniciales: ${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0}`, 20, yPosition + 10);
-        doc.text(`Fotos finales: ${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0}`, 20, yPosition + 20);
+        doc.text('EVIDENCIA FOTOGRÁFICA:', 20, yFinal);
+        doc.text(`Fotos iniciales: ${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0}`, 20, yFinal + 10);
+        doc.text(`Fotos finales: ${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0}`, 20, yFinal + 20);
         
         // Guardar PDF
         doc.save(`reparacion-${reparacion.id}.pdf`);

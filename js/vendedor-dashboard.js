@@ -47,16 +47,6 @@ class VendedorDashboard {
     }
     
     showSection(sectionName) {
-        // Si se navega a una sección diferente a ventas, limpiar información de reparación
-        if (sectionName !== 'ventas') {
-            localStorage.removeItem('ventaReparacionActual');
-            const seccionReparacion = document.getElementById('reparacionInfoSection');
-            if (seccionReparacion) {
-                seccionReparacion.remove();
-            }
-            this.restaurarBotonNuevoCliente();
-        }
-        
         // Ocultar todas las secciones
         const sections = document.querySelectorAll('.content-section');
         sections.forEach(section => section.style.display = 'none');
@@ -108,11 +98,6 @@ class VendedorDashboard {
                 targetTab.classList.add('active');
                 targetTab.style.display = 'block';
                 console.log('Pestaña activada:', targetTab.id);
-                
-                // Cargar gráficas si se selecciona la pestaña de gráficas
-                if (tabName === 'graficas') {
-                    this.loadGraficas();
-                }
             } else {
                 console.error('No se encontró la pestaña:', `tab-${tabName}`);
             }
@@ -133,10 +118,6 @@ class VendedorDashboard {
             case 'ventas':
                 this.loadProductosVenta();
                 this.loadClientesVenta();
-                // Establecer número de cédula por defecto
-                this.establecerCedulaPorDefecto();
-                // Verificar si hay información de reparación para mostrar
-                this.verificarYMostrarReparacionEnVenta();
                 break;
             case 'productos':
                 this.loadProductosCatalogo();
@@ -154,195 +135,6 @@ class VendedorDashboard {
                 this.loadNotificaciones();
                 break;
         }
-    }
-    
-    establecerCedulaPorDefecto() {
-        const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-        if (buscarClienteCedula && !buscarClienteCedula.value) {
-            buscarClienteCedula.value = '1234567890';
-        }
-    }
-    
-    loadGraficas() {
-        this.generarGraficaVentasMes();
-        this.generarGraficaProductosVendidos();
-        this.generarGraficaReparaciones();
-        this.generarGraficaIngresos();
-    }
-    
-    generarGraficaVentasMes() {
-        const ctx = document.getElementById('ventasMesChart');
-        if (!ctx) return;
-        
-        const ventas = this.getVentas();
-        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const datos = new Array(12).fill(0);
-        
-        ventas.forEach(venta => {
-            const fecha = new Date(venta.fecha);
-            const mes = fecha.getMonth();
-            datos[mes] += venta.total || 0;
-        });
-        
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: meses,
-                datasets: [{
-                    data: datos,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
-                        '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    }
-    
-    generarGraficaProductosVendidos() {
-        const ctx = document.getElementById('productosVendidosChart');
-        if (!ctx) return;
-        
-        const ventas = this.getVentas();
-        const productosVendidos = {};
-        
-        ventas.forEach(venta => {
-            if (venta.productos) {
-                venta.productos.forEach(producto => {
-                    if (productosVendidos[producto.nombre]) {
-                        productosVendidos[producto.nombre] += producto.cantidad;
-                    } else {
-                        productosVendidos[producto.nombre] = producto.cantidad;
-                    }
-                });
-            }
-        });
-        
-        const topProductos = Object.entries(productosVendidos)
-            .sort(([,a], [,b]) => b - a)
-            .slice(0, 5);
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: topProductos.map(([nombre]) => nombre),
-                datasets: [{
-                    label: 'Cantidad Vendida',
-                    data: topProductos.map(([, cantidad]) => cantidad),
-                    backgroundColor: '#28a745',
-                    borderColor: '#20c997',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    
-    generarGraficaReparaciones() {
-        const ctx = document.getElementById('reparacionesChart');
-        if (!ctx) return;
-        
-        const reparaciones = this.getReparaciones();
-        const estados = {
-            'pendiente': 0,
-            'en proceso': 0,
-            'finalizada': 0,
-            'espera': 0
-        };
-        
-        reparaciones.forEach(reparacion => {
-            if (estados[reparacion.estado]) {
-                estados[reparacion.estado]++;
-            }
-        });
-        
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Pendiente', 'En Proceso', 'Finalizada', 'En Espera'],
-                datasets: [{
-                    data: Object.values(estados),
-                    backgroundColor: [
-                        '#ffc107', // Pendiente - Amarillo
-                        '#17a2b8', // En Proceso - Azul
-                        '#28a745', // Finalizada - Verde
-                        '#dc3545'  // En Espera - Rojo
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    }
-    
-    generarGraficaIngresos() {
-        const ctx = document.getElementById('ingresosChart');
-        if (!ctx) return;
-        
-        const ventas = this.getVentas();
-        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const datos = new Array(12).fill(0);
-        
-        ventas.forEach(venta => {
-            const fecha = new Date(venta.fecha);
-            const mes = fecha.getMonth();
-            datos[mes] += venta.total || 0;
-        });
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: meses,
-                datasets: [{
-                    label: 'Ingresos ($)',
-                    data: datos,
-                    borderColor: '#17a2b8',
-                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        });
     }
     
     setupEventListeners() {
@@ -383,16 +175,6 @@ class VendedorDashboard {
         if (btnProductoNoEncontrado) {
             btnProductoNoEncontrado.addEventListener('click', () => {
                 this.mostrarSeccionProductoNoEncontrado();
-            });
-        }
-        
-        // Búsqueda de cliente por cédula
-        const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-        if (buscarClienteCedula) {
-            buscarClienteCedula.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.buscarClientePorCedula();
-                }
             });
         }
     }
@@ -559,20 +341,15 @@ class VendedorDashboard {
         
         container.innerHTML = '';
         this.productosSeleccionados.forEach((producto, index) => {
-            const subtotalProducto = producto.precio * producto.cantidad;
-            const descuentoProducto = (subtotalProducto * (producto.descuento || 0)) / 100;
-            const totalProducto = subtotalProducto - descuentoProducto;
-            
             const div = document.createElement('div');
             div.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
             div.innerHTML = `
                 <div>
                     <strong>${producto.nombre}</strong><br>
                     <small class="text-muted">$${producto.precio} x ${producto.cantidad}</small>
-                    ${producto.descuento > 0 ? `<br><small class="text-success">Descuento: ${producto.descuento}% (-$${descuentoProducto.toFixed(2)})</small>` : ''}
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-bold">$${totalProducto.toFixed(2)}</span>
+                    <span class="fw-bold">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
                     <button class="btn btn-sm btn-outline-danger" onclick="vendedorDashboard.removerProductoVenta(${index})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -588,31 +365,12 @@ class VendedorDashboard {
         this.actualizarResumenVenta();
     }
     
-    toggleDescuento(productoId) {
-        const checkBox = document.getElementById(`check_descuento_${productoId}`);
-        const descuentoInput = document.getElementById(`descuento_${productoId}`);
-        
-        if (checkBox.checked) {
-            descuentoInput.disabled = false;
-            descuentoInput.focus();
-        } else {
-            descuentoInput.disabled = true;
-            descuentoInput.value = 0;
-        }
-    }
-    
     actualizarResumenVenta() {
         const subtotal = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
-        const descuentoTotal = this.productosSeleccionados.reduce((sum, p) => {
-            const descuentoProducto = (p.precio * p.cantidad * (p.descuento || 0)) / 100;
-            return sum + descuentoProducto;
-        }, 0);
-        const subtotalConDescuento = subtotal - descuentoTotal;
-        const iva = subtotalConDescuento * 0.12;
-        const total = subtotalConDescuento + iva;
+        const iva = subtotal * 0.12;
+        const total = subtotal + iva;
         
         document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-        document.getElementById('descuento').textContent = `$${descuentoTotal.toFixed(2)}`;
         document.getElementById('iva').textContent = `$${iva.toFixed(2)}`;
         document.getElementById('total').textContent = `$${total.toFixed(2)}`;
     }
@@ -710,7 +468,7 @@ class VendedorDashboard {
                                 </div>
                                 <div class="col-md-2 text-end">
                                     <button class="btn btn-sm btn-outline-primary" 
-                                            onclick="vendedorDashboard.agregarMaterialAVenta('${material.producto}', ${material.precio}, ${material.descuento || 0})"
+                                            onclick="vendedorDashboard.agregarMaterialAVenta('${material.producto}', ${material.precio})"
                                             title="Agregar a la venta">
                                         <i class="fas fa-plus"></i>
                                     </button>
@@ -735,7 +493,7 @@ class VendedorDashboard {
         container.innerHTML = html;
     }
     
-    agregarMaterialAVenta(nombreProducto, precio, descuento = 0) {
+    agregarMaterialAVenta(nombreProducto, precio) {
         // Buscar el producto en el inventario
         const productos = this.getProductos();
         const producto = productos.find(p => p.nombre === nombreProducto);
@@ -754,15 +512,10 @@ class VendedorDashboard {
         const index = this.productosSeleccionados.findIndex(p => p.id === producto.id);
         if (index > -1) {
             this.productosSeleccionados[index].cantidad += 1;
-            // Mantener el descuento existente o aplicar el nuevo si es mayor
-            if (descuento > 0) {
-                this.productosSeleccionados[index].descuento = Math.max(this.productosSeleccionados[index].descuento || 0, descuento);
-            }
         } else {
             this.productosSeleccionados.push({
                 ...producto,
-                cantidad: 1,
-                descuento: descuento
+                cantidad: 1
             });
         }
         
@@ -792,13 +545,8 @@ class VendedorDashboard {
     
     procesarVentaConCliente(cliente) {
         const subtotal = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
-        const descuentoTotal = this.productosSeleccionados.reduce((sum, p) => {
-            const descuentoProducto = (p.precio * p.cantidad * (p.descuento || 0)) / 100;
-            return sum + descuentoProducto;
-        }, 0);
-        const subtotalConDescuento = subtotal - descuentoTotal;
-        const iva = subtotalConDescuento * 0.12;
-        const total = subtotalConDescuento + iva;
+        const iva = subtotal * 0.12;
+        const total = subtotal + iva;
         
         const venta = {
             id: Date.now().toString(),
@@ -806,7 +554,6 @@ class VendedorDashboard {
             cliente,
             productos: [...this.productosSeleccionados],
             subtotal,
-            descuento: descuentoTotal,
             iva,
             total,
             fecha: new Date().toISOString(),
@@ -828,16 +575,6 @@ class VendedorDashboard {
         this.productosSeleccionados = [];
         this.actualizarProductosSeleccionados();
         this.actualizarResumenVenta();
-        
-        // Limpiar información de reparación si existe
-        localStorage.removeItem('ventaReparacionActual');
-        const seccionReparacion = document.getElementById('reparacionInfoSection');
-        if (seccionReparacion) {
-            seccionReparacion.remove();
-        }
-        
-        // Restaurar el botón "Nuevo Cliente"
-        this.restaurarBotonNuevoCliente();
         
         this.showNotification('Venta finalizada exitosamente', 'success');
         this.loadDashboardData();
@@ -867,16 +604,6 @@ class VendedorDashboard {
         
         // Limpiar formulario
         document.getElementById('clienteFacturaForm').reset();
-        
-        // Limpiar información de reparación si existe
-        localStorage.removeItem('ventaReparacionActual');
-        const seccionReparacion = document.getElementById('reparacionInfoSection');
-        if (seccionReparacion) {
-            seccionReparacion.remove();
-        }
-        
-        // Restaurar el botón "Nuevo Cliente"
-        this.restaurarBotonNuevoCliente();
     }
     
     verDetalleProducto(productoId) {
@@ -893,11 +620,8 @@ class VendedorDashboard {
         document.getElementById('detalleNombreProducto').textContent = producto.nombre;
         document.getElementById('detalleDescripcionProducto').textContent = producto.descripcion;
         document.getElementById('detallePrecioProducto').textContent = `$${producto.precio}`;
-        const descuentoText = producto.descuentoMinimo && producto.descuentoMaximo ? 
-            `Min: $${producto.descuentoMinimo} - Max: $${producto.descuentoMaximo}` : 
-            producto.descuentoMinimo ? `Min: $${producto.descuentoMinimo}` :
-            producto.descuentoMaximo ? `Max: $${producto.descuentoMaximo}` : 'Sin descuento';
-        document.getElementById('detalleDescuentoProducto').textContent = descuentoText;
+        document.getElementById('detalleDescuentoMinimoProducto').textContent = (producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : 'Sin descuento mínimo';
+        document.getElementById('detalleDescuentoMaximoProducto').textContent = (producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : 'Sin descuento máximo';
         document.getElementById('detalleStockProducto').textContent = `${producto.stock} unidades`;
         document.getElementById('detalleProveedorProducto').textContent = producto.proveedor || 'No especificado';
         document.getElementById('detalleFechaProducto').textContent = producto.fechaCreacion ? 
@@ -923,6 +647,9 @@ class VendedorDashboard {
         document.getElementById('marcaMoto').value = reparacion.marca;
         document.getElementById('modeloMoto').value = reparacion.modelo;
         document.getElementById('fallaReparacion').value = reparacion.falla;
+        
+        // Cargar fotos iniciales existentes
+        this.cargarFotosExistentes(reparacion.fotosIniciales || []);
         
         // Guardar ID de la reparación que se está editando
         this.reparacionEditando = reparacionId;
@@ -957,12 +684,19 @@ class VendedorDashboard {
             return;
         }
         
+        // Obtener fotos actualizadas (existentes + nuevas)
+        let fotosIniciales = [];
+        if (window.fotoManager && window.fotoManager.fotosIniciales) {
+            fotosIniciales = window.fotoManager.fotosIniciales;
+        }
+        
         // Actualizar datos de la reparación
         reparaciones[index].cliente = cliente;
         reparaciones[index].mecanico = mecanico;
         reparaciones[index].marca = marca;
         reparaciones[index].modelo = modelo;
         reparaciones[index].falla = falla;
+        reparaciones[index].fotosIniciales = fotosIniciales;
         
         localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
         
@@ -975,6 +709,12 @@ class VendedorDashboard {
         document.querySelector('#reparacionModal .modal-title').textContent = 'Nueva Reparación';
         document.querySelector('#reparacionModal .btn-primary').textContent = 'Guardar';
         document.querySelector('#reparacionModal .btn-primary').onclick = () => this.guardarReparacion();
+        
+        // Limpiar fotos del modal
+        const container = document.getElementById('fotosIniciales');
+        if (container) {
+            container.innerHTML = '';
+        }
     }
     
 
@@ -1041,21 +781,9 @@ class VendedorDashboard {
         let y = 120;
         
         venta.productos.forEach(producto => {
-            const subtotalProducto = producto.precio * producto.cantidad;
-            const descuentoProducto = (subtotalProducto * (producto.descuento || 0)) / 100;
-            const totalProducto = subtotalProducto - descuentoProducto;
-            
             doc.text(`${producto.nombre}`, 20, y);
             doc.text(`${producto.cantidad} x $${producto.precio}`, 120, y);
-            if (producto.descuento > 0) {
-                doc.text(`$${totalProducto.toFixed(2)}`, 180, y);
-                y += 5;
-                doc.setFontSize(8);
-                doc.text(`Descuento ${producto.descuento}%: -$${descuentoProducto.toFixed(2)}`, 120, y);
-                doc.setFontSize(12);
-            } else {
-                doc.text(`$${totalProducto.toFixed(2)}`, 180, y);
-            }
+            doc.text(`$${(producto.precio * producto.cantidad).toFixed(2)}`, 180, y);
             y += 10;
         });
         
@@ -1064,11 +792,6 @@ class VendedorDashboard {
         doc.text('Subtotal:', 140, y);
         doc.text(`$${venta.subtotal.toFixed(2)}`, 180, y);
         y += 10;
-        if (venta.descuento > 0) {
-            doc.text('Descuento:', 140, y);
-            doc.text(`$${venta.descuento.toFixed(2)}`, 180, y);
-            y += 10;
-        }
         doc.text('IVA (12%):', 140, y);
         doc.text(`$${venta.iva.toFixed(2)}`, 180, y);
         y += 10;
@@ -1094,10 +817,8 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>
-                    ${producto.descuentoMinimo && producto.descuentoMinimo > 0 ? `Min: $${producto.descuentoMinimo}` : '-'}
-                    ${producto.descuentoMaximo && producto.descuentoMaximo > 0 ? `<br>Max: $${producto.descuentoMaximo}` : ''}
-                </td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -1130,10 +851,8 @@ class VendedorDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>
-                    ${producto.descuentoMinimo && producto.descuentoMinimo > 0 ? `Min: $${producto.descuentoMinimo}` : '-'}
-                    ${producto.descuentoMaximo && producto.descuentoMaximo > 0 ? `<br>Max: $${producto.descuentoMaximo}` : ''}
-                </td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -1245,9 +964,15 @@ class VendedorDashboard {
                 <td>${reparacion.marca} ${reparacion.modelo}</td>
                 <td>${reparacion.falla}</td>
                 <td>
-                    <span class="badge badge-${this.getEstadoClass(reparacion.estado)}">
-                        ${reparacion.estado}
-                    </span>
+                    <select class="form-select form-select-sm estado-reparacion-select" 
+                            onchange="vendedorDashboard.cambiarEstadoReparacion('${reparacion.id}', this.value)"
+                            data-estado="${reparacion.estado}"
+                            style="min-width: 120px;">
+                        <option value="pendiente" ${reparacion.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="en-proceso" ${reparacion.estado === 'en-proceso' ? 'selected' : ''}>En Proceso</option>
+                        <option value="espera" ${reparacion.estado === 'espera' ? 'selected' : ''}>En Espera</option>
+                        <option value="finalizada" ${reparacion.estado === 'finalizada' ? 'selected' : ''}>Finalizada</option>
+                    </select>
                 </td>
                 <td>${reparacion.mecanico}</td>
                 <td>${new Date(reparacion.fecha).toLocaleDateString()}</td>
@@ -1259,11 +984,11 @@ class VendedorDashboard {
                         <button class="btn btn-sm btn-outline-info" onclick="vendedorDashboard.verFotosReparacion('${reparacion.id}')" title="Ver fotos">
                             <i class="fas fa-camera"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="vendedorDashboard.finalizarReparacion('${reparacion.id}')" title="Finalizar reparación">
-                            <i class="fas fa-check"></i>
-                        </button>
                         <button class="btn btn-sm btn-outline-warning" onclick="vendedorDashboard.editarReparacion('${reparacion.id}')" title="Editar reparación">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="vendedorDashboard.finalizarReparacion('${reparacion.id}')" title="Finalizar reparación">
+                            <i class="fas fa-check"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="vendedorDashboard.eliminarReparacion('${reparacion.id}')" title="Eliminar reparación">
                             <i class="fas fa-trash"></i>
@@ -1325,9 +1050,6 @@ class VendedorDashboard {
         this.reparacionActual = reparacionId;
         this.materialesReparacion = [];
         
-        // Limpiar formulario
-        this.limpiarFormularioMateriales();
-        
         // Cargar productos en el select
         const productos = this.getProductos().filter(p => p.stock > 0);
         const select = document.getElementById('productoMaterial');
@@ -1343,42 +1065,9 @@ class VendedorDashboard {
         // Mostrar modal
         const modal = new bootstrap.Modal(document.getElementById('materialesModal'));
         modal.show();
-    }
-    
-    limpiarFormularioMateriales() {
-        // Limpiar campos del formulario
-        document.getElementById('productoMaterial').value = '';
-        document.getElementById('cantidadMaterial').value = '';
-        document.getElementById('precioMaterial').value = '';
-        document.getElementById('observacionesMaterial').value = '';
         
-        // Limpiar descuento
-        const descuentoCheckReparacion = document.getElementById('check_descuento_material_reparacion');
-        const descuentoInputReparacion = document.getElementById('descuentoMaterialReparacion');
-        if (descuentoCheckReparacion && descuentoInputReparacion) {
-            descuentoCheckReparacion.checked = false;
-            descuentoInputReparacion.value = '0';
-            descuentoInputReparacion.disabled = true;
-        }
-        
-        // Ocultar sección de producto no encontrado
-        const section = document.getElementById('productoNoEncontradoSection');
-        if (section) {
-            section.style.display = 'none';
-        }
-        
-        // Restaurar botón de producto no encontrado
-        const btn = document.getElementById('btnProductoNoEncontrado');
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>Producto no encontrado en inventario';
-            btn.className = 'btn btn-outline-warning';
-        }
-        
-        // Limpiar materiales registrados
-        const materialesRegistrados = document.getElementById('materialesRegistrados');
-        if (materialesRegistrados) {
-            materialesRegistrados.innerHTML = '';
-        }
+        // Actualizar la lista de materiales registrados (inicialmente vacía)
+        this.actualizarMaterialesRegistrados();
     }
     
     actualizarPrecioMaterial() {
@@ -1388,6 +1077,12 @@ class VendedorDashboard {
         if (select.value) {
             const option = select.options[select.selectedIndex];
             precioInput.value = option.dataset.precio;
+            
+            // Actualizar descuento máximo si el checkbox está marcado
+            const descuentoCheck = document.getElementById('check_descuento_material');
+            if (descuentoCheck && descuentoCheck.checked) {
+                this.actualizarDescuentoMaximo();
+            }
         } else {
             precioInput.value = '';
         }
@@ -1423,25 +1118,10 @@ class VendedorDashboard {
         const cantidad = parseInt(document.getElementById('cantidadMaterial').value);
         const observaciones = document.getElementById('observacionesMaterial').value;
         
-        // Verificar si estamos en el modal de reparación o en el modal de venta
-        const descuentoCheck = document.getElementById('check_descuento_material_reparacion');
-        const descuentoInput = document.getElementById('descuentoMaterialReparacion');
-        
-        let descuento = 0;
-        if (descuentoCheck && descuentoInput) {
-            // Estamos en el modal de reparación
-            descuento = descuentoCheck.checked ? parseFloat(descuentoInput.value) || 0 : 0;
-        } else {
-            // Estamos en el modal de venta
-            const descuentoCheckVenta = document.getElementById('check_descuento_material');
-            const descuentoInputVenta = document.getElementById('descuentoMaterial');
-            descuento = descuentoCheckVenta.checked ? parseFloat(descuentoInputVenta.value) || 0 : 0;
-        }
-        
-        if (descuento < 0 || descuento > 100) {
-            this.showNotification('El descuento debe estar entre 0% y 100%', 'warning');
-            return;
-        }
+        // Capturar descuento
+        const descuentoCheck = document.getElementById('check_descuento_material');
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuento = descuentoCheck && descuentoCheck.checked ? parseFloat(descuentoInput.value) || 0 : 0;
         
         // Verificar si es un producto del inventario o uno nuevo
         const esProductoNuevo = document.getElementById('productoNoEncontradoSection').style.display !== 'none';
@@ -1470,6 +1150,7 @@ class VendedorDashboard {
                 cantidad,
                 precio: producto.precio,
                 descuento: descuento,
+                precioConDescuento: this.calcularPrecioConDescuento(producto.precio, descuento),
                 observaciones,
                 tipo: 'inventario'
             };
@@ -1482,49 +1163,10 @@ class VendedorDashboard {
             document.getElementById('cantidadMaterial').value = '';
             document.getElementById('precioMaterial').value = '';
             document.getElementById('observacionesMaterial').value = '';
-            
-            // Limpiar descuento según el modal
-            if (descuentoCheck && descuentoInput) {
-                // Modal de reparación
-                descuentoCheck.checked = false;
-                descuentoInput.value = '0';
-                descuentoInput.disabled = true;
-            } else {
-                // Modal de venta
-                const descuentoCheckVenta = document.getElementById('check_descuento_material');
-                const descuentoInputVenta = document.getElementById('descuentoMaterial');
-                if (descuentoCheckVenta && descuentoInputVenta) {
-                    descuentoCheckVenta.checked = false;
-                    descuentoInputVenta.value = '0';
-                    descuentoInputVenta.disabled = true;
-                }
-            }
-        }
-    }
-    
-    toggleDescuentoMaterial() {
-        const checkBox = document.getElementById('check_descuento_material');
-        const descuentoInput = document.getElementById('descuentoMaterial');
-        
-        if (checkBox.checked) {
-            descuentoInput.disabled = false;
-            descuentoInput.focus();
-        } else {
-            descuentoInput.disabled = true;
-            descuentoInput.value = 0;
-        }
-    }
-    
-    toggleDescuentoMaterialReparacion() {
-        const checkBox = document.getElementById('check_descuento_material_reparacion');
-        const descuentoInput = document.getElementById('descuentoMaterialReparacion');
-        
-        if (checkBox.checked) {
-            descuentoInput.disabled = false;
-            descuentoInput.focus();
-        } else {
-            descuentoInput.disabled = true;
-            descuentoInput.value = 0;
+            document.getElementById('check_descuento_material').checked = false;
+            document.getElementById('descuentoMaterial').value = '0';
+            document.getElementById('descuentoMaterial').disabled = true;
+            document.getElementById('descuentoMaterialInfo').style.display = 'none';
         }
     }
     
@@ -1548,6 +1190,7 @@ class VendedorDashboard {
             proveedorSugerido: proveedor,
             cantidadSolicitada: cantidad,
             observaciones,
+            descuento: descuento,
             reparacionId: this.reparacionActual,
             fechaSolicitud: new Date().toISOString(),
             estado: 'pendiente',
@@ -1566,6 +1209,7 @@ class VendedorDashboard {
             cantidad,
             precio: precio,
             descuento: descuento,
+            precioConDescuento: this.calcularPrecioConDescuento(precio, descuento),
             observaciones,
             tipo: 'pendiente',
             solicitudId: solicitudAdquisicion.id
@@ -1581,25 +1225,10 @@ class VendedorDashboard {
         this.mostrarSeccionProductoNoEncontrado();
         document.getElementById('cantidadMaterial').value = '';
         document.getElementById('observacionesMaterial').value = '';
-        
-        // Limpiar descuento según el modal
-        const descuentoCheckReparacion = document.getElementById('check_descuento_material_reparacion');
-        const descuentoInputReparacion = document.getElementById('descuentoMaterialReparacion');
-        if (descuentoCheckReparacion && descuentoInputReparacion) {
-            // Modal de reparación
-            descuentoCheckReparacion.checked = false;
-            descuentoInputReparacion.value = '0';
-            descuentoInputReparacion.disabled = true;
-        } else {
-            // Modal de venta
-            const descuentoCheckVenta = document.getElementById('check_descuento_material');
-            const descuentoInputVenta = document.getElementById('descuentoMaterial');
-            if (descuentoCheckVenta && descuentoInputVenta) {
-                descuentoCheckVenta.checked = false;
-                descuentoInputVenta.value = '0';
-                descuentoInputVenta.disabled = true;
-            }
-        }
+        document.getElementById('check_descuento_material').checked = false;
+        document.getElementById('descuentoMaterial').value = '0';
+        document.getElementById('descuentoMaterial').disabled = true;
+        document.getElementById('descuentoMaterialInfo').style.display = 'none';
         
         this.showNotification('Producto agregado como solicitud de adquisición', 'success');
     }
@@ -1626,6 +1255,12 @@ class VendedorDashboard {
         if (!container) return;
         
         container.innerHTML = '';
+        
+        if (this.materialesReparacion.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted p-3"><i class="fas fa-box-open me-2"></i>No hay materiales registrados</div>';
+            return;
+        }
+        
         this.materialesReparacion.forEach((material, index) => {
             const div = document.createElement('div');
             const esPendiente = material.tipo === 'pendiente';
@@ -1639,9 +1274,23 @@ class VendedorDashboard {
                 statusBadge = '<span class="badge bg-warning text-dark me-2">Pendiente de Adquisición</span>';
             }
             
-            const subtotalMaterial = material.precio * material.cantidad;
-            const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-            const totalMaterial = subtotalMaterial - descuentoMaterial;
+            // Calcular precio final con descuento
+            const precioFinal = material.descuento && material.descuento > 0 
+                ? material.precioConDescuento || this.calcularPrecioConDescuento(material.precio, material.descuento)
+                : material.precio;
+            
+            const subtotal = precioFinal * material.cantidad;
+            
+            // Mostrar información de descuento
+            let descuentoInfo = '';
+            if (material.descuento && material.descuento > 0) {
+                descuentoInfo = `
+                    <br><small class="text-success">
+                        <i class="fas fa-percentage me-1"></i>Descuento: ${material.descuento}% 
+                        ($${material.precio} → $${precioFinal.toFixed(2)})
+                    </small>
+                `;
+            }
             
             div.innerHTML = `
                 <div>
@@ -1650,12 +1299,12 @@ class VendedorDashboard {
                         <strong>${material.producto}</strong>
                     </div>
                     <small class="text-muted">Cantidad: ${material.cantidad} - $${material.precio} c/u</small>
-                    ${material.descuento > 0 ? `<br><small class="text-success">Descuento: ${material.descuento}% (-$${descuentoMaterial.toFixed(2)})</small>` : ''}
+                    ${descuentoInfo}
                     ${material.observaciones ? `<br><small class="text-muted">${material.observaciones}</small>` : ''}
                     ${esPendiente ? '<br><small class="text-warning"><i class="fas fa-clock me-1"></i>Esperando adquisición</small>' : ''}
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-bold">$${totalMaterial.toFixed(2)}</span>
+                    <span class="fw-bold">$${subtotal.toFixed(2)}</span>
                     <button class="btn btn-sm btn-outline-danger" onclick="vendedorDashboard.removerMaterial(${index})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -1682,7 +1331,7 @@ class VendedorDashboard {
         // Crear modal para finalizar reparación con fotos finales
         let modalContent = `
             <div class="modal fade" id="finalizarReparacionModal" tabindex="-1">
-                <div class="modal-dialog modal-md">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title">
@@ -1733,41 +1382,37 @@ class VendedorDashboard {
                             </div>
                             
                             <!-- Campo de Mano de Obra -->
-                            <div class="mb-4">
-                                <h6 class="mb-3">
-                                    <i class="fas fa-tools me-2 text-primary"></i>
-                                    Costo de Mano de Obra
-                                </h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="manoObraFinal" class="form-label">Costo de Mano de Obra ($)</label>
-                                            <input type="number" class="form-control" id="manoObraFinal" 
-                                                   min="0" step="0.01" placeholder="0.00" required>
-                                            <div class="form-text">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                Ingrese el costo total de la mano de obra
+                            <div class="mano-obra-section mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-dollar-sign me-2 text-success"></i>
+                                            Mano de Obra
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="manoObra" class="form-label">Costo de Mano de Obra ($)</label>
+                                                    <input type="number" class="form-control" id="manoObra" 
+                                                           placeholder="0.00" step="0.01" min="0" 
+                                                           value="${reparacion.manoObra || ''}">
+                                                    <div class="form-text">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Ingrese el costo de la mano de obra aplicada
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="observacionesManoObra" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesManoObra" 
+                                                              rows="2" placeholder="Detalles adicionales sobre la mano de obra...">${reparacion.observacionesManoObra || ''}</textarea>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="observacionesManoObra" class="form-label">Observaciones (Opcional)</label>
-                                            <textarea class="form-control" id="observacionesManoObra" rows="3" 
-                                                      placeholder="Detalles adicionales sobre el trabajo realizado..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Materiales Utilizados -->
-                            <div class="mb-4">
-                                <h6 class="mb-3">
-                                    <i class="fas fa-boxes me-2 text-primary"></i>
-                                    Materiales Utilizados
-                                </h6>
-                                <div id="materialesUtilizadosContainer">
-                                    ${this.generarHTMLMaterialesUtilizados(reparacion.materiales || [])}
                                 </div>
                             </div>
                             
@@ -1779,14 +1424,22 @@ class VendedorDashboard {
                                     Las fotografías finales son obligatorias para completar la reparación.
                                 </div>
                                 
-                                <div id="fotosFinales" class="fotos-container">
-                                    <div class="foto-placeholder" onclick="window.fotoManager.capturarFoto('fotosFinales')">
+                                <div class="fotos-container" id="fotosFinalesContainer">
+                                    <div class="foto-placeholder" onclick="capturarFoto('fotosFinales')">
                                         <i class="fas fa-camera"></i>
                                         <span>Capturar<br>Foto</span>
                                     </div>
-                                    <div class="foto-placeholder" onclick="window.fotoManager.subirArchivo('fotosFinales')">
+                                    <div class="foto-placeholder" onclick="subirArchivo('fotosFinales')">
                                         <i class="fas fa-upload"></i>
                                         <span>Subir<br>Imágenes</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Contenedor para mostrar las fotos capturadas -->
+                                <div id="fotosFinales" class="fotos-display-container mt-3" style="min-height: 100px; border: 2px dashed #dee2e6; border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div class="text-muted">
+                                        <i class="fas fa-images me-2"></i>
+                                        Las fotos capturadas aparecerán aquí
                                     </div>
                                 </div>
                                 
@@ -1826,22 +1479,23 @@ class VendedorDashboard {
     }
     
     confirmarFinalizacion(reparacionId) {
+        // Verificar que el fotoManager esté disponible
+        if (!window.fotoManager) {
+            this.showNotification('Error: Sistema de fotos no disponible', 'error');
+            return;
+        }
+        
         // Verificar que hay fotos finales
-        const fotosFinales = window.fotoManager ? window.fotoManager.obtenerFotos('fotosFinales') : [];
+        const fotosFinales = window.fotoManager.obtenerFotos('fotosFinales');
         
         if (!fotosFinales || fotosFinales.length === 0) {
             this.showNotification('Debe capturar al menos una foto final como evidencia', 'warning');
             return;
         }
         
-        // Verificar mano de obra
-        const manoObra = parseFloat(document.getElementById('manoObraFinal').value);
+        // Capturar datos de mano de obra
+        const manoObra = parseFloat(document.getElementById('manoObra').value) || 0;
         const observacionesManoObra = document.getElementById('observacionesManoObra').value;
-        
-        if (isNaN(manoObra) || manoObra < 0) {
-            this.showNotification('Debe ingresar un costo válido para la mano de obra', 'warning');
-            return;
-        }
         
         const reparaciones = this.getReparaciones();
         const reparacion = reparaciones.find(r => r.id === reparacionId);
@@ -1850,9 +1504,9 @@ class VendedorDashboard {
             reparacion.estado = 'finalizada';
             reparacion.materiales = [...this.materialesReparacion];
             reparacion.fotosFinales = fotosFinales;
+            reparacion.fechaFinalizacion = new Date().toISOString();
             reparacion.manoObra = manoObra;
             reparacion.observacionesManoObra = observacionesManoObra;
-            reparacion.fechaFinalizacion = new Date().toISOString();
             
             localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
             
@@ -1864,421 +1518,10 @@ class VendedorDashboard {
             
             this.loadReparaciones();
             this.loadDashboardData();
-            this.showNotification('Reparación finalizada exitosamente. Redirigiendo a venta...', 'success');
+            this.showNotification('Reparación finalizada exitosamente con evidencia fotográfica', 'success');
             
             // Generar recibo de reparación
             this.generarReciboReparacion(reparacion);
-            
-            // Redirigir al módulo de venta con la información de la reparación
-            this.redirigirAVentaConReparacion(reparacion);
-        }
-    }
-    
-    redirigirAVentaConReparacion(reparacion) {
-        // Guardar información de la reparación en localStorage para usarla en venta
-        const ventaReparacion = {
-            reparacion: reparacion,
-            materiales: reparacion.materiales || [],
-            manoObra: reparacion.manoObra || 0,
-            observacionesManoObra: reparacion.observacionesManoObra || '',
-            fechaFinalizacion: reparacion.fechaFinalizacion
-        };
-        
-        localStorage.setItem('ventaReparacionActual', JSON.stringify(ventaReparacion));
-        
-        // Redirigir al módulo de venta
-        this.showSection('ventas');
-        
-        // Actualizar navegación activa
-        const navLinks = document.querySelectorAll('.sidebar .nav-link');
-        navLinks.forEach(link => link.classList.remove('active'));
-        const ventasLink = document.querySelector('.sidebar .nav-link[data-section="ventas"]');
-        if (ventasLink) {
-            ventasLink.classList.add('active');
-        }
-        
-        // Cargar información de la reparación en el módulo de venta
-        this.cargarInformacionReparacionEnVenta(reparacion);
-    }
-    
-    cargarInformacionReparacionEnVenta(reparacion) {
-        // Crear sección de información de reparación en el detalle de venta
-        const detallesVenta = document.querySelector('.col-lg-4 .form-container');
-        if (!detallesVenta) return;
-        
-        // Ocultar el botón "Nuevo Cliente" ya que el cliente viene de la reparación
-        const btnNuevoCliente = detallesVenta.querySelector('button[data-bs-target="#clienteModal"]');
-        if (btnNuevoCliente) {
-            btnNuevoCliente.style.display = 'none';
-        }
-        
-        // Buscar si ya existe la sección de reparación
-        let seccionReparacion = document.getElementById('reparacionInfoSection');
-        if (!seccionReparacion) {
-            seccionReparacion = document.createElement('div');
-            seccionReparacion.id = 'reparacionInfoSection';
-            seccionReparacion.className = 'mb-4';
-            
-            // Insertar después del título "Detalles de la Venta"
-            const tituloDetalles = detallesVenta.querySelector('h4');
-            if (tituloDetalles) {
-                tituloDetalles.parentNode.insertBefore(seccionReparacion, tituloDetalles.nextSibling);
-            }
-        }
-        
-        // Crear contenido de la información de reparación
-        seccionReparacion.innerHTML = `
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-tools me-2"></i>
-                        Reparación Finalizada #${reparacion.id}
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-2">
-                                <strong><i class="fas fa-motorcycle me-2 text-primary"></i>Moto:</strong>
-                                <span class="text-muted">${reparacion.marca} ${reparacion.modelo}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong><i class="fas fa-tools me-2 text-primary"></i>Mecánico:</strong>
-                                <span class="text-muted">${reparacion.mecanico}</span>
-                            </div>
-                            <div class="mb-2">
-                                <strong><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Falla:</strong>
-                                <span class="text-muted">${reparacion.falla}</span>
-                            </div>
-                            <div class="mb-3">
-                                <strong><i class="fas fa-dollar-sign me-2 text-success"></i>Mano de Obra:</strong>
-                                <span class="text-success fw-bold">$${(reparacion.manoObra || 0).toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Materiales de la Reparación -->
-                    <div class="mt-3">
-                        <h6 class="text-primary">
-                            <i class="fas fa-boxes me-2"></i>
-                            Materiales Utilizados
-                        </h6>
-                        <div id="materialesReparacionVenta" class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
-                            ${this.generarHTMLMaterialesReparacion(reparacion.materiales || [])}
-                        </div>
-                    </div>
-                    
-                    <!-- Botón para agregar materiales a la venta -->
-                    <div class="mt-3">
-                        <button class="btn btn-sm btn-outline-primary w-100" onclick="vendedorDashboard.agregarMaterialesReparacionAVenta()">
-                            <i class="fas fa-plus me-1"></i>
-                            Agregar Materiales a la Venta
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Establecer el cliente de la reparación en el campo de cliente
-        const clienteVenta = document.getElementById('clienteVenta');
-        if (clienteVenta) {
-            clienteVenta.value = reparacion.cliente;
-        }
-        
-        // Buscar y mostrar el cliente de la reparación en la sección de búsqueda
-        this.buscarYMostrarClienteReparacion(reparacion);
-    }
-    
-    buscarYMostrarClienteReparacion(reparacion) {
-        // Buscar cliente por nombre en la base de datos
-        const clientes = this.getClientes();
-        const nombreCliente = reparacion.cliente.toLowerCase().trim();
-        
-        // Buscar cliente que coincida con el nombre de la reparación
-        let clienteEncontrado = clientes.find(c => {
-            const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase().trim();
-            return nombreCompleto === nombreCliente;
-        });
-        
-        // Si no se encuentra por nombre completo, buscar por nombre o apellido
-        if (!clienteEncontrado) {
-            clienteEncontrado = clientes.find(c => {
-                const nombre = c.nombre.toLowerCase().trim();
-                const apellido = c.apellido.toLowerCase().trim();
-                return nombreCliente.includes(nombre) || nombreCliente.includes(apellido);
-            });
-        }
-        
-        // Si se encuentra el cliente, mostrar su información
-        if (clienteEncontrado) {
-            // Establecer la cédula en el campo de búsqueda
-            const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-            if (buscarClienteCedula) {
-                buscarClienteCedula.value = clienteEncontrado.cedula;
-            }
-            
-            // Mostrar la información del cliente encontrado
-            this.mostrarClienteEncontrado(clienteEncontrado);
-        } else {
-            // Si no se encuentra, crear un cliente temporal con la información de la reparación
-            const clienteTemporalReparacion = {
-                id: `temp-reparacion-${reparacion.id}`,
-                nombre: reparacion.cliente.split(' ')[0] || 'Cliente',
-                apellido: reparacion.cliente.split(' ').slice(1).join(' ') || 'Reparación',
-                cedula: '0000000000',
-                telefono: 'No registrado',
-                email: 'No registrado'
-            };
-            
-            // Establecer cédula temporal en el campo de búsqueda
-            const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-            if (buscarClienteCedula) {
-                buscarClienteCedula.value = clienteTemporalReparacion.cedula;
-            }
-            
-            // Mostrar la información del cliente temporal
-            this.mostrarClienteEncontrado(clienteTemporalReparacion);
-        }
-    }
-    
-    generarHTMLMaterialesReparacion(materiales) {
-        if (!materiales || materiales.length === 0) {
-            return '<div class="text-muted text-center">No se utilizaron materiales</div>';
-        }
-        
-        let html = '';
-        let totalMateriales = 0;
-        
-        materiales.forEach(material => {
-            const subtotalMaterial = material.precio * material.cantidad;
-            const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-            const totalMaterial = subtotalMaterial - descuentoMaterial;
-            totalMateriales += totalMaterial;
-            
-            html += `
-                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
-                    <div>
-                        <strong>${material.producto}</strong><br>
-                        <small class="text-muted">${material.cantidad} x $${material.precio}</small>
-                        ${material.descuento > 0 ? `<br><small class="text-success">Descuento: ${material.descuento}% (-$${descuentoMaterial.toFixed(2)})</small>` : ''}
-                    </div>
-                    <div class="text-end">
-                        <span class="fw-bold">$${totalMaterial.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                <strong>Total Materiales:</strong>
-                <strong class="text-primary">$${totalMateriales.toFixed(2)}</strong>
-            </div>
-        `;
-        
-        return html;
-    }
-    
-    agregarMaterialesReparacionAVenta() {
-        const ventaReparacionData = localStorage.getItem('ventaReparacionActual');
-        if (!ventaReparacionData) {
-            this.showNotification('No hay información de reparación disponible', 'warning');
-            return;
-        }
-        
-        const ventaReparacion = JSON.parse(ventaReparacionData);
-        const materiales = ventaReparacion.materiales || [];
-        
-        if (materiales.length === 0) {
-            this.showNotification('No hay materiales para agregar', 'info');
-            return;
-        }
-        
-        // Agregar cada material a la venta
-        materiales.forEach(material => {
-            this.agregarMaterialAVenta(material.producto, material.precio, material.descuento || 0);
-        });
-        
-        // Agregar mano de obra como un producto especial
-        if (ventaReparacion.manoObra > 0) {
-            const manoObraProducto = {
-                id: 'mano-obra-' + Date.now(),
-                nombre: `Mano de Obra - Reparación #${ventaReparacion.reparacion.id}`,
-                precio: ventaReparacion.manoObra,
-                descuento: 0,
-                stock: 999 // Stock ilimitado para mano de obra
-            };
-            
-            // Verificar si ya está en la lista
-            const index = this.productosSeleccionados.findIndex(p => p.id === manoObraProducto.id);
-            if (index > -1) {
-                this.productosSeleccionados[index].cantidad += 1;
-            } else {
-                this.productosSeleccionados.push({
-                    ...manoObraProducto,
-                    cantidad: 1
-                });
-            }
-            
-            this.actualizarProductosSeleccionados();
-            this.actualizarResumenVenta();
-        }
-        
-        this.showNotification('Materiales de reparación agregados a la venta', 'success');
-    }
-    
-    restaurarBotonNuevoCliente() {
-        const nuevoClienteSection = document.getElementById('nuevoClienteSection');
-        if (nuevoClienteSection) {
-            nuevoClienteSection.style.display = 'block';
-        }
-        
-        const clienteEncontradoSection = document.getElementById('clienteEncontradoSection');
-        if (clienteEncontradoSection) {
-            clienteEncontradoSection.style.display = 'none';
-        }
-        
-        const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-        if (buscarClienteCedula) {
-            buscarClienteCedula.value = '1234567890';
-        }
-    }
-    
-    buscarClientePorCedula() {
-        const cedula = document.getElementById('buscarClienteCedula').value.trim();
-        
-        if (!cedula) {
-            this.showNotification('Por favor ingrese un número de cédula', 'warning');
-            return;
-        }
-        
-        if (cedula.length < 10) {
-            this.showNotification('El número de cédula debe tener 10 dígitos', 'warning');
-            return;
-        }
-        
-        // Si es la cédula por defecto, mostrar cliente de ejemplo
-        if (cedula === '1234567890') {
-            const clienteEjemplo = {
-                id: 'ejemplo-001',
-                nombre: 'Juan Carlos',
-                apellido: 'Pérez González',
-                cedula: '1234567890',
-                telefono: '0987654321',
-                email: 'juan.perez@email.com'
-            };
-            this.mostrarClienteEncontrado(clienteEjemplo);
-            return;
-        }
-        
-        const clientes = this.getClientes();
-        const cliente = clientes.find(c => c.cedula === cedula);
-        
-        if (cliente) {
-            this.mostrarClienteEncontrado(cliente);
-        } else {
-            this.mostrarClienteNoEncontrado();
-        }
-    }
-    
-    mostrarClienteEncontrado(cliente) {
-        const clienteEncontradoSection = document.getElementById('clienteEncontradoSection');
-        const clienteEncontradoInfo = document.getElementById('clienteEncontradoInfo');
-        const nuevoClienteSection = document.getElementById('nuevoClienteSection');
-        
-        // Mostrar información del cliente
-        clienteEncontradoInfo.innerHTML = `
-            <div class="row">
-                <div class="col-12">
-                    <div class="mb-2">
-                        <strong>Nombre:</strong> ${cliente.nombre} ${cliente.apellido}
-                    </div>
-                    <div class="mb-2">
-                        <strong>Cédula:</strong> ${cliente.cedula}
-                    </div>
-                    <div class="mb-2">
-                        <strong>Teléfono:</strong> ${cliente.telefono || 'No registrado'}
-                    </div>
-                    <div class="mb-2">
-                        <strong>Email:</strong> ${cliente.email || 'No registrado'}
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-sm btn-outline-success" onclick="vendedorDashboard.seleccionarClienteParaVenta('${cliente.id}')">
-                    <i class="fas fa-check me-1"></i>
-                    Seleccionar Cliente
-                </button>
-                <button class="btn btn-sm btn-outline-secondary" onclick="vendedorDashboard.limpiarBusquedaCliente()">
-                    <i class="fas fa-times me-1"></i>
-                    Limpiar
-                </button>
-            </div>
-        `;
-        
-        // Mostrar sección de cliente encontrado y ocultar sección de nuevo cliente
-        clienteEncontradoSection.style.display = 'block';
-        nuevoClienteSection.style.display = 'none';
-    }
-    
-    mostrarClienteNoEncontrado() {
-        const clienteEncontradoSection = document.getElementById('clienteEncontradoSection');
-        const nuevoClienteSection = document.getElementById('nuevoClienteSection');
-        
-        // Ocultar sección de cliente encontrado y mostrar sección de nuevo cliente
-        clienteEncontradoSection.style.display = 'none';
-        nuevoClienteSection.style.display = 'block';
-        
-        this.showNotification('Cliente no encontrado. Puede crear uno nuevo.', 'info');
-    }
-    
-    seleccionarClienteParaVenta(clienteId) {
-        const clientes = this.getClientes();
-        const cliente = clientes.find(c => c.id === clienteId);
-        
-        if (cliente) {
-            // Establecer el cliente en el campo de cliente de la venta
-            const clienteVenta = document.getElementById('clienteVenta');
-            if (clienteVenta) {
-                clienteVenta.value = `${cliente.nombre} ${cliente.apellido}`;
-            }
-            
-            // Cargar materiales de reparación del cliente si existen
-            this.cargarMaterialesReparacionCliente();
-            
-            this.showNotification(`Cliente ${cliente.nombre} ${cliente.apellido} seleccionado`, 'success');
-        }
-    }
-    
-    limpiarBusquedaCliente() {
-        const clienteEncontradoSection = document.getElementById('clienteEncontradoSection');
-        const nuevoClienteSection = document.getElementById('nuevoClienteSection');
-        const buscarClienteCedula = document.getElementById('buscarClienteCedula');
-        
-        // Establecer valor por defecto en lugar de limpiar
-        buscarClienteCedula.value = '1234567890';
-        
-        // Ocultar sección de cliente encontrado y mostrar sección de nuevo cliente
-        clienteEncontradoSection.style.display = 'none';
-        nuevoClienteSection.style.display = 'block';
-        
-        // Limpiar cliente seleccionado en la venta
-        const clienteVenta = document.getElementById('clienteVenta');
-        if (clienteVenta) {
-            clienteVenta.value = '';
-        }
-    }
-    
-    verificarYMostrarReparacionEnVenta() {
-        const ventaReparacionData = localStorage.getItem('ventaReparacionActual');
-        if (ventaReparacionData) {
-            try {
-                const ventaReparacion = JSON.parse(ventaReparacionData);
-                this.cargarInformacionReparacionEnVenta(ventaReparacion.reparacion);
-            } catch (error) {
-                console.error('Error al cargar información de reparación:', error);
-                localStorage.removeItem('ventaReparacionActual');
-            }
         }
     }
     
@@ -2297,80 +1540,64 @@ class VendedorDashboard {
         doc.text(`Moto: ${reparacion.marca} ${reparacion.modelo}`, 20, 70);
         doc.text(`Mecánico: ${reparacion.mecanico}`, 20, 80);
         
-        let yPosition = 100;
-        let totalMateriales = 0;
-        let totalDescuentos = 0;
-        
         // Materiales si existen
         if (reparacion.materiales && reparacion.materiales.length > 0) {
-            doc.text('MATERIALES UTILIZADOS:', 20, yPosition);
-            yPosition += 10;
+            doc.text('MATERIALES UTILIZADOS:', 20, 100);
+            let y = 110;
+            let totalMateriales = 0;
             
             reparacion.materiales.forEach(material => {
-                const subtotalMaterial = material.precio * material.cantidad;
-                const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-                const totalMaterial = subtotalMaterial - descuentoMaterial;
-                
-                doc.text(`${material.producto}`, 20, yPosition);
-                doc.text(`${material.cantidad} x $${material.precio}`, 120, yPosition);
-                
-                if (material.descuento > 0) {
-                    doc.text(`$${totalMaterial.toFixed(2)}`, 180, yPosition);
-                    yPosition += 5;
-                    doc.setFontSize(8);
-                    doc.text(`Descuento ${material.descuento}%: -$${descuentoMaterial.toFixed(2)}`, 120, yPosition);
-                    doc.setFontSize(12);
-                    totalDescuentos += descuentoMaterial;
-                } else {
-                    doc.text(`$${totalMaterial.toFixed(2)}`, 180, yPosition);
-                }
-                
-                totalMateriales += totalMaterial;
-                yPosition += 10;
+                doc.text(`${material.producto}`, 20, y);
+                doc.text(`${material.cantidad} x $${material.precio}`, 120, y);
+                const subtotal = material.precio * material.cantidad;
+                doc.text(`$${subtotal.toFixed(2)}`, 180, y);
+                totalMateriales += subtotal;
+                y += 10;
             });
             
-            // Subtotal materiales
-            yPosition += 5;
-            doc.text('Subtotal Materiales:', 140, yPosition);
-            doc.text(`$${(totalMateriales + totalDescuentos).toFixed(2)}`, 180, yPosition);
-            
-            if (totalDescuentos > 0) {
-                yPosition += 10;
-                doc.text('Descuentos:', 140, yPosition);
-                doc.text(`-$${totalDescuentos.toFixed(2)}`, 180, yPosition);
-            }
-            
-            yPosition += 10;
+            // Total materiales
+            y += 10;
             doc.setFontSize(14);
-            doc.text('TOTAL MATERIALES:', 140, yPosition);
-            doc.text(`$${totalMateriales.toFixed(2)}`, 180, yPosition);
-            doc.setFontSize(12);
+            doc.text('TOTAL MATERIALES:', 140, y);
+            doc.text(`$${totalMateriales.toFixed(2)}`, 180, y);
+            y += 15;
+        } else {
+            let y = 100;
         }
         
         // Mano de obra
-        yPosition += 20;
-        doc.text('MANO DE OBRA:', 20, yPosition);
-        yPosition += 10;
-        doc.text(`Costo de Mano de Obra: $${(reparacion.manoObra || 0).toFixed(2)}`, 20, yPosition);
-        
-        if (reparacion.observacionesManoObra) {
-            yPosition += 10;
-            doc.text(`Observaciones: ${reparacion.observacionesManoObra}`, 20, yPosition);
+        if (reparacion.manoObra && reparacion.manoObra > 0) {
+            doc.setFontSize(12);
+            doc.text('MANO DE OBRA:', 20, y);
+            doc.text(`$${reparacion.manoObra.toFixed(2)}`, 180, y);
+            y += 10;
+            
+            if (reparacion.observacionesManoObra) {
+                doc.setFontSize(10);
+                doc.text('Observaciones:', 20, y);
+                y += 5;
+                doc.text(reparacion.observacionesManoObra, 20, y);
+                y += 10;
+            }
         }
         
         // Total general
-        yPosition += 20;
+        const totalMateriales = reparacion.materiales ? reparacion.materiales.reduce((sum, material) => {
+            const subtotal = material.precio * material.cantidad;
+            return sum + subtotal;
+        }, 0) : 0;
         const totalGeneral = totalMateriales + (reparacion.manoObra || 0);
-        doc.setFontSize(16);
-        doc.text('TOTAL GENERAL:', 140, yPosition);
-        doc.text(`$${totalGeneral.toFixed(2)}`, 180, yPosition);
+        
+        doc.setFontSize(14);
+        doc.text('TOTAL GENERAL:', 140, y);
+        doc.text(`$${totalGeneral.toFixed(2)}`, 180, y);
         
         // Información de evidencia fotográfica
-        yPosition += 20;
+        const yFinal = y + 20; // Usar la posición final después del total general
         doc.setFontSize(12);
-        doc.text('EVIDENCIA FOTOGRÁFICA:', 20, yPosition);
-        doc.text(`Fotos iniciales: ${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0}`, 20, yPosition + 10);
-        doc.text(`Fotos finales: ${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0}`, 20, yPosition + 20);
+        doc.text('EVIDENCIA FOTOGRÁFICA:', 20, yFinal);
+        doc.text(`Fotos iniciales: ${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0}`, 20, yFinal + 10);
+        doc.text(`Fotos finales: ${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0}`, 20, yFinal + 20);
         
         // Guardar PDF
         doc.save(`reparacion-${reparacion.id}.pdf`);
@@ -2706,92 +1933,6 @@ class VendedorDashboard {
         return clases[estado] || 'pendiente';
     }
     
-    generarHTMLMaterialesUtilizados(materiales) {
-        if (!materiales || materiales.length === 0) {
-            return `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>No se han registrado materiales</strong><br>
-                    <small class="text-muted">Esta reparación no requiere materiales adicionales o aún no se han registrado.</small>
-                </div>
-            `;
-        }
-        
-        let html = `
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th><i class="fas fa-box me-1"></i>Material</th>
-                            <th><i class="fas fa-hashtag me-1"></i>Cantidad</th>
-                            <th><i class="fas fa-dollar-sign me-1"></i>Precio Unit.</th>
-                            <th><i class="fas fa-percentage me-1"></i>Desc.</th>
-                            <th><i class="fas fa-calculator me-1"></i>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        let totalMateriales = 0;
-        let totalDescuentos = 0;
-        
-        materiales.forEach(material => {
-            const subtotalMaterial = material.precio * material.cantidad;
-            const descuentoMaterial = (subtotalMaterial * (material.descuento || 0)) / 100;
-            const totalMaterial = subtotalMaterial - descuentoMaterial;
-            totalMateriales += totalMaterial;
-            totalDescuentos += descuentoMaterial;
-            
-            html += `
-                <tr>
-                    <td>
-                        <strong>${material.producto}</strong>
-                        ${material.observaciones ? `<br><small class="text-muted">${material.observaciones}</small>` : ''}
-                    </td>
-                    <td class="text-center">${material.cantidad}</td>
-                    <td class="text-end">$${material.precio.toFixed(2)}</td>
-                    <td class="text-center">
-                        ${material.descuento > 0 ? `<span class="badge bg-success">${material.descuento}%</span>` : '-'}
-                    </td>
-                    <td class="text-end">
-                        <strong>$${totalMaterial.toFixed(2)}</strong>
-                        ${material.descuento > 0 ? `<br><small class="text-success">-$${descuentoMaterial.toFixed(2)}</small>` : ''}
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                    <tfoot class="table-light">
-                        <tr>
-                            <td colspan="4" class="text-end"><strong>Subtotal Materiales:</strong></td>
-                            <td class="text-end"><strong>$${(totalMateriales + totalDescuentos).toFixed(2)}</strong></td>
-                        </tr>
-        `;
-        
-        if (totalDescuentos > 0) {
-            html += `
-                        <tr>
-                            <td colspan="4" class="text-end text-success"><strong>Descuentos:</strong></td>
-                            <td class="text-end text-success"><strong>-$${totalDescuentos.toFixed(2)}</strong></td>
-                        </tr>
-            `;
-        }
-        
-        html += `
-                        <tr class="table-primary">
-                            <td colspan="4" class="text-end"><strong>TOTAL MATERIALES:</strong></td>
-                            <td class="text-end"><strong>$${totalMateriales.toFixed(2)}</strong></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        `;
-        
-        return html;
-    }
-    
     cerrarModal(modalId) {
         const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
         if (modal) {
@@ -2820,6 +1961,200 @@ class VendedorDashboard {
                 notification.remove();
             }
         }, 5000);
+    }
+    
+    // Función para toggle de descuento en productos
+    toggleDescuento(productoId) {
+        const descuentoCheck = document.getElementById(`check_descuento_${productoId}`);
+        const descuentoInput = document.getElementById(`descuento_${productoId}`);
+        
+        if (descuentoCheck && descuentoInput) {
+            descuentoInput.disabled = !descuentoCheck.checked;
+            if (!descuentoCheck.checked) {
+                descuentoInput.value = '0';
+            }
+        }
+    }
+    
+    // Función para toggle de descuento en materiales de reparación
+    toggleDescuentoMaterial() {
+        const descuentoCheck = document.getElementById('check_descuento_material');
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuentoInfo = document.getElementById('descuentoMaterialInfo');
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        
+        if (descuentoCheck && descuentoInput) {
+            descuentoInput.disabled = !descuentoCheck.checked;
+            
+            if (descuentoCheck.checked) {
+                descuentoInput.value = '0';
+                descuentoInfo.style.display = 'block';
+                descuentoError.style.display = 'none';
+                this.actualizarDescuentoMaximo();
+            } else {
+                descuentoInput.value = '0';
+                descuentoInfo.style.display = 'none';
+                descuentoError.style.display = 'none';
+            }
+        }
+    }
+    
+    // Función para actualizar el descuento máximo permitido según el producto
+    actualizarDescuentoMaximo() {
+        const productoSelect = document.getElementById('productoMaterial');
+        const descuentoMaximoSpan = document.getElementById('descuentoMaximoPermitido');
+        
+        if (productoSelect && productoSelect.value && descuentoMaximoSpan) {
+            const productos = this.getProductos();
+            const producto = productos.find(p => p.id === productoSelect.value);
+            
+            if (producto) {
+                // Determinar descuento máximo basado en el producto
+                let descuentoMaximo = 20; // Valor por defecto
+                
+                if (producto.descuentoMaximo) {
+                    descuentoMaximo = producto.descuentoMaximo;
+                } else if (producto.precio > 100) {
+                    descuentoMaximo = 15; // Productos caros, menos descuento
+                } else if (producto.precio > 50) {
+                    descuentoMaximo = 20; // Productos medios
+                } else {
+                    descuentoMaximo = 25; // Productos baratos, más descuento
+                }
+                
+                descuentoMaximoSpan.textContent = `${descuentoMaximo}%`;
+                
+                // Actualizar el max del input
+                const descuentoInput = document.getElementById('descuentoMaterial');
+                if (descuentoInput) {
+                    descuentoInput.max = descuentoMaximo;
+                    descuentoInput.dataset.maxDescuento = descuentoMaximo;
+                }
+            }
+        }
+    }
+    
+    // Función para validar el descuento ingresado
+    validarDescuentoMaterial() {
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        const descuentoErrorTexto = document.getElementById('descuentoErrorTexto');
+        
+        if (!descuentoInput || descuentoInput.disabled) return;
+        
+        const descuento = parseFloat(descuentoInput.value) || 0;
+        const maxDescuento = parseFloat(descuentoInput.dataset.maxDescuento) || 20;
+        
+        if (descuento < 0) {
+            this.mostrarErrorDescuento('El descuento no puede ser negativo');
+            descuentoInput.value = '0';
+        } else if (descuento > maxDescuento) {
+            this.mostrarErrorDescuento(`El descuento no puede superar el ${maxDescuento}%`);
+            descuentoInput.value = maxDescuento;
+        } else if (descuento > 0 && descuento <= maxDescuento) {
+            descuentoError.style.display = 'none';
+        }
+    }
+    
+    // Función para mostrar errores de descuento
+    mostrarErrorDescuento(mensaje) {
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        const descuentoErrorTexto = document.getElementById('descuentoErrorTexto');
+        
+        if (descuentoError && descuentoErrorTexto) {
+            descuentoErrorTexto.textContent = mensaje;
+            descuentoError.style.display = 'block';
+            
+            // Ocultar el error después de 3 segundos
+            setTimeout(() => {
+                descuentoError.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    // Función para calcular precio con descuento
+    calcularPrecioConDescuento(precio, descuento) {
+        if (descuento <= 0) return precio;
+        return precio - (precio * descuento / 100);
+    }
+    
+    // Función para cargar fotos existentes en el modal de edición
+    cargarFotosExistentes(fotos) {
+        const container = document.getElementById('fotosIniciales');
+        if (!container) return;
+        
+        // Limpiar contenedor
+        container.innerHTML = '';
+        
+        if (fotos && fotos.length > 0) {
+            fotos.forEach((foto, index) => {
+                const fotoDiv = document.createElement('div');
+                fotoDiv.className = 'foto-item';
+                fotoDiv.style.cssText = 'display: inline-block; margin: 5px; position: relative;';
+                
+                fotoDiv.innerHTML = `
+                    <img src="${foto.data}" alt="Foto inicial ${index + 1}" 
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer;" 
+                         onclick="window.fotoManager.verFoto('${foto.data}')">
+                    <button type="button" class="btn btn-sm btn-danger" 
+                            style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; padding: 0; border-radius: 50%; font-size: 10px;"
+                            onclick="vendedorDashboard.eliminarFotoExistente(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                container.appendChild(fotoDiv);
+            });
+        }
+        
+        // Inicializar el fotoManager con las fotos existentes
+        if (window.fotoManager) {
+            window.fotoManager.fotosIniciales = fotos || [];
+        }
+    }
+    
+    // Función para eliminar una foto existente
+    eliminarFotoExistente(index) {
+        if (window.fotoManager && window.fotoManager.fotosIniciales) {
+            window.fotoManager.fotosIniciales.splice(index, 1);
+            this.cargarFotosExistentes(window.fotoManager.fotosIniciales);
+        }
+    }
+    
+    // Función para cambiar el estado de una reparación
+    cambiarEstadoReparacion(reparacionId, nuevoEstado) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        const estadoAnterior = reparacion.estado;
+        reparacion.estado = nuevoEstado;
+        
+        // Guardar cambios
+        localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+        
+        // Actualizar el atributo data-estado del dropdown
+        const dropdown = document.querySelector(`select[onchange*="${reparacionId}"]`);
+        if (dropdown) {
+            dropdown.setAttribute('data-estado', nuevoEstado);
+        }
+        
+        // Mostrar notificación
+        this.showNotification(`Estado cambiado de "${estadoAnterior}" a "${nuevoEstado}"`, 'success');
+        
+        // Crear notificación del cambio
+        this.crearNotificacion(
+            'Estado de reparación actualizado', 
+            `Reparación #${reparacionId} cambió de ${estadoAnterior} a ${nuevoEstado}`, 
+            'info'
+        );
+        
+        // Actualizar dashboard si es necesario
+        this.loadDashboardData();
     }
     
     // Métodos para editar y eliminar (placeholder)
@@ -3085,14 +2420,6 @@ function marcarTodasLeidas() {
 
 function agregarMaterial() {
     vendedorDashboard.agregarMaterial();
-}
-
-function toggleDescuentoMaterial() {
-    vendedorDashboard.toggleDescuentoMaterial();
-}
-
-function toggleDescuentoMaterialReparacion() {
-    vendedorDashboard.toggleDescuentoMaterialReparacion();
 }
 
 // Inicializar dashboard
