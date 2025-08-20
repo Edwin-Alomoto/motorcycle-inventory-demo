@@ -384,14 +384,37 @@ class VendedorDashboard {
                 observacionesHtml = `<br><small class="text-info"><i class="fas fa-info-circle me-1"></i>${producto.observaciones}</small>`;
             }
             
+            // Calcular precio con descuento
+            const descuento = producto.descuento || 0;
+            const precioConDescuento = producto.precio - descuento;
+            const subtotal = precioConDescuento * producto.cantidad;
+            const descuentoTotal = descuento * producto.cantidad;
+            
+            // Mostrar descuento si existe
+            let descuentoHtml = '';
+            if (descuento > 0) {
+                descuentoHtml = `
+                    <br><small class="text-success">
+                        <i class="fas fa-tag me-1"></i>Descuento: $${descuento.toFixed(2)} c/u
+                    </small>
+                    <br><small class="text-muted">
+                        <i class="fas fa-dollar-sign me-1"></i>Precio final: $${precioConDescuento.toFixed(2)} c/u
+                    </small>
+                `;
+            }
+            
             div.innerHTML = `
                 <div>
                     <strong><i class="${iconClass} me-1"></i>${producto.nombre}</strong><br>
                     <small class="text-muted">$${producto.precio} x ${producto.cantidad}</small>
+                    ${descuentoHtml}
                     ${observacionesHtml}
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-bold">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
+                    <div class="text-end">
+                        ${descuento > 0 ? `<small class="text-success">-$${descuentoTotal.toFixed(2)}</small><br>` : ''}
+                        <span class="fw-bold">$${subtotal.toFixed(2)}</span>
+                    </div>
                     <button class="btn btn-sm btn-outline-danger" onclick="vendedorDashboard.removerProductoVenta(${index})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -408,11 +431,22 @@ class VendedorDashboard {
     }
     
     actualizarResumenVenta() {
-        const subtotal = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+        // Calcular subtotal sin descuentos
+        const subtotalSinDescuento = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+        
+        // Calcular descuento total
+        const descuentoTotal = this.productosSeleccionados.reduce((sum, p) => {
+            const descuento = p.descuento || 0;
+            return sum + (descuento * p.cantidad);
+        }, 0);
+        
+        // Calcular subtotal con descuentos
+        const subtotal = subtotalSinDescuento - descuentoTotal;
         const iva = subtotal * 0.12;
         const total = subtotal + iva;
         
-        document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+        document.getElementById('subtotal').textContent = `$${subtotalSinDescuento.toFixed(2)}`;
+        document.getElementById('descuento').textContent = `$${descuentoTotal.toFixed(2)}`;
         document.getElementById('iva').textContent = `$${iva.toFixed(2)}`;
         document.getElementById('total').textContent = `$${total.toFixed(2)}`;
     }
