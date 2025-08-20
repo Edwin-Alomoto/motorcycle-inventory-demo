@@ -45,7 +45,7 @@ cd sistema-reparacion-motos
 1. Abrir el archivo `index.html` en tu navegador web
 2. O usar un servidor local:
    ```bash
-   # Con Python 3
+   # Con Python 
    python -m http.server 8000
    
    # Con Node.js
