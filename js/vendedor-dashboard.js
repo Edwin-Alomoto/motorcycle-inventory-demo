@@ -1383,7 +1383,7 @@ class VendedorDashboard {
             if (material.descuento && material.descuento > 0) {
                 descuentoInfo = `
                     <br><small class="text-success">
-                        <i class="fas fa-percentage me-1"></i>Descuento: ${material.descuento}% 
+                        <i class="fas fa-tag me-1"></i>Descuento: $${material.descuento.toFixed(2)} 
                         ($${material.precio} → $${precioFinal.toFixed(2)})
                     </small>
                 `;
@@ -2210,7 +2210,7 @@ class VendedorDashboard {
     // Función para calcular precio con descuento
     calcularPrecioConDescuento(precio, descuento) {
         if (descuento <= 0) return precio;
-        return precio - (precio * descuento / 100);
+        return precio - descuento;
     }
     
     // Función para cargar fotos existentes en el modal de edición
@@ -2542,7 +2542,7 @@ class VendedorDashboard {
                         nombre: producto.nombre,
                         precio: material.precio,
                         cantidad: material.cantidad,
-                        descuento: 0,
+                        descuento: material.descuento || 0,
                         tipo: 'material_reparacion',
                         reparacionId: reparacion.id
                     });
@@ -2553,7 +2553,7 @@ class VendedorDashboard {
                         nombre: material.producto,
                         precio: material.precio,
                         cantidad: material.cantidad,
-                        descuento: 0,
+                        descuento: material.descuento || 0,
                         tipo: 'material_reparacion',
                         reparacionId: reparacion.id
                     });
