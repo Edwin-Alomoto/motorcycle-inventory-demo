@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Búsqueda de Cliente por Cédula</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-10 offset-md-1">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-search me-2"></i>Test: Búsqueda de Cliente por Cédula</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle me-2"></i>Funcionalidad a Probar</h5>
+                            <p>Este test verifica la nueva funcionalidad de búsqueda de cliente por cédula/RUC:</p>
+                            <ol>
+                                <li>Buscar cliente existente por cédula</li>
+                                <li>Mostrar información del cliente encontrado</li>
+                                <li>Crear nuevo cliente si no existe</li>
+                                <li>Integración con el módulo de ventas</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-play me-2"></i>Pasos para Probar</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ol>
+                                            <li>Abre el dashboard del vendedor</li>
+                                            <li>Ve al módulo de ventas</li>
+                                            <li>En "Detalles de Venta", busca un cliente por cédula</li>
+                                            <li>Si existe, verifica que se muestre su información</li>
+                                            <li>Si no existe, prueba crear uno nuevo</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-check me-2"></i>Resultados Esperados</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul>
+                                            <li>✅ Campo de búsqueda por cédula/RUC</li>
+                                            <li>✅ Búsqueda con Enter o botón</li>
+                                            <li>✅ Información del cliente encontrado</li>
+                                            <li>✅ Opción para crear cliente nuevo</li>
+                                            <li>✅ Integración con materiales de reparación</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="vendedor-dashboard.html" class="btn btn-primary btn-lg">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Abrir Dashboard del Vendedor
+                            </a>
+                            
+                            <button class="btn btn-success" onclick="simularBusquedaCliente()">
+                                <i class="fas fa-search me-2"></i>
+                                Simular Búsqueda de Cliente
+                            </button>
+                        </div>
+                        
+                        <div id="resultado" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/vendedor-dashboard.js"></script>
+    
+    <script>
+        function simularBusquedaCliente() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = `
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-cog fa-spin me-2"></i>Simulando Búsqueda de Cliente</h5>
+                    <p>Se está simulando la búsqueda de un cliente por cédula...</p>
+                    <p>Revisa la consola para ver los logs de depuración.</p>
+                </div>
+            `;
+            
+            if (window.vendedorDashboard) {
+                console.log('=== SIMULACIÓN DE BÚSQUEDA DE CLIENTE ===');
+                
+                // Simular búsqueda de cliente existente
+                console.log('Simulando búsqueda de cliente existente...');
+                
+                // Crear un cliente de prueba si no existe
+                const clientes = window.vendedorDashboard.getClientes();
+                if (clientes.length === 0) {
+                    console.log('No hay clientes registrados, creando uno de prueba...');
+                    
+                    const clientePrueba = {
+                        id: Date.now().toString(),
+                        cedula: '1234567890',
+                        nombre: 'Juan Pérez',
+                        direccion: 'Av. Principal 123',
+                        telefono: '0987654321',
+                        email: 'juan@example.com',
+                        fechaCreacion: new Date().toISOString()
+                    };
+                    
+                    clientes.push(clientePrueba);
+                    localStorage.setItem('clientes', JSON.stringify(clientes));
+                    console.log('Cliente de prueba creado:', clientePrueba);
+                }
+                
+                // Simular búsqueda
+                const cedulaInput = document.getElementById('buscarCedulaCliente');
+                if (cedulaInput) {
+                    cedulaInput.value = '1234567890';
+                    window.vendedorDashboard.buscarClientePorCedula();
+                }
+                
+                resultado.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-check-circle me-2"></i>Simulación Completada</h5>
+                        <p>Se ha simulado la búsqueda de un cliente con cédula: <strong>1234567890</strong></p>
+                        <p>Ahora puedes probar la funcionalidad en el dashboard del vendedor.</p>
+                    </div>
+                `;
+                
+            } else {
+                resultado.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Error</h5>
+                        <p>El dashboard del vendedor no está disponible.</p>
+                        <p>Asegúrate de estar en el dashboard correcto.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Verificar si el dashboard está cargado
+        window.addEventListener('load', () => {
+            if (window.vendedorDashboard) {
+                console.log('✅ Dashboard del vendedor cargado correctamente');
+            } else {
+                console.log('❌ Dashboard del vendedor no disponible');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -240,8 +240,7 @@
                                                 <th>Precio</th>
                                                 <th>Stock</th>
                                                 <th>Cantidad</th>
-                                                <th>Descuento Mín.</th>
-                                                <th>Descuento Máx.</th>
+                                                <th>Descuento</th>
                                                 <th>Acciones</th>
                                             </tr>
                                         </thead>
@@ -257,10 +256,66 @@
                             <div class="form-container">
                                 <h4>Detalles de la Venta</h4>
                                 
+                                <!-- Búsqueda de Cliente por Cédula -->
                                 <div class="mb-3">
-                                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#clienteModal">
-                                        <i class="fas fa-plus"></i> Nuevo Cliente
-                                    </button>
+                                    <label for="buscarCedulaCliente" class="form-label">
+                                        <i class="fas fa-search me-2 text-primary"></i>
+                                        Buscar Cliente por Cédula/RUC
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="buscarCedulaCliente" 
+                                               placeholder="Ingrese cédula o RUC" maxlength="13">
+                                        <button class="btn btn-outline-primary" type="button" onclick="vendedorDashboard.buscarClientePorCedula()">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#clienteModal">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Ingrese la cédula o RUC del cliente. Si no existe, puede crear uno nuevo.
+                                        <br>
+                                        <small class="text-muted">
+                                            <strong>Cédulas por defecto:</strong> 1234567890, 0987654321, 1111111111, 2222222222
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Campo oculto para almacenar el cliente seleccionado -->
+                                <input type="hidden" id="clienteVenta" value="">
+                                
+                                <!-- Información del Cliente -->
+                                <div class="mb-3" id="infoClienteSection" style="display: none;">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white py-2">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-user-check me-2"></i>
+                                                Información del Cliente
+                                            </h6>
+                                        </div>
+                                        <div class="card-body py-2">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <small class="text-muted">Cédula/RUC:</small><br>
+                                                    <strong id="cedulaClienteInfo">-</strong>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted">Teléfono:</small><br>
+                                                    <strong id="telefonoClienteInfo">-</strong>
+                                                </div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Dirección:</small><br>
+                                                <strong id="direccionClienteInfo">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Información de Reparación -->
+                                <div class="mb-3" id="infoReparacionSection" style="display: none;">
+                                    <!-- Se llenará dinámicamente cuando se finalice una reparación -->
                                 </div>
                                 
                                 <!-- Sección de Materiales de Reparación -->
@@ -333,8 +388,7 @@
                                         <th>Nombre</th>
                                         <th>Descripción</th>
                                         <th>Precio</th>
-                                        <th>Descuento Mín.</th>
-                                        <th>Descuento Máx.</th>
+                                        <th>Descuento</th>
                                         <th>Stock</th>
                                         <th>Proveedor</th>
                                         <th>Acciones</th>

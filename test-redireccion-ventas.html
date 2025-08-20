@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Redirección Ventas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Test de Redirección al Módulo de Ventas</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Este archivo prueba la funcionalidad de redirección al módulo de ventas después de finalizar una reparación.</p>
+                        
+                        <div class="alert alert-info">
+                            <strong>Instrucciones:</strong>
+                            <ol>
+                                <li>Abre el dashboard del vendedor</li>
+                                <li>Ve al módulo de reparaciones</li>
+                                <li>Finaliza una reparación</li>
+                                <li>Verifica que te redirija automáticamente al módulo de ventas</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="vendedor-dashboard.html" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Abrir Dashboard del Vendedor
+                            </a>
+                            
+                            <button class="btn btn-success" onclick="simularFinalizacion()">
+                                <i class="fas fa-tools me-2"></i>
+                                Simular Finalización de Reparación
+                            </button>
+                        </div>
+                        
+                        <div id="resultado" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/vendedor-dashboard.js"></script>
+    
+    <script>
+        function simularFinalizacion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = `
+                <div class="alert alert-success">
+                    <h5>Simulación de Finalización</h5>
+                    <p>Se está simulando la finalización de una reparación...</p>
+                    <p>Deberías ver en la consola los logs de depuración.</p>
+                </div>
+            `;
+            
+            // Simular la finalización
+            if (window.vendedorDashboard) {
+                console.log('Simulando finalización de reparación...');
+                // Crear una reparación de prueba
+                const reparacionPrueba = {
+                    id: 'TEST-001',
+                    cliente: 'Cliente de Prueba',
+                    marca: 'Honda',
+                    modelo: 'CBR 600',
+                    mecanico: 'Mecánico de Prueba',
+                    falla: 'Falla de prueba',
+                    estado: 'en proceso',
+                    fecha: new Date().toISOString(),
+                    materiales: [],
+                    manoObra: 50.00
+                };
+                
+                // Simular la confirmación de finalización
+                window.vendedorDashboard.confirmarFinalizacion('TEST-001');
+            } else {
+                resultado.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>Error</h5>
+                        <p>El dashboard del vendedor no está disponible. Asegúrate de estar en el dashboard correcto.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Verificar si el dashboard está cargado
+        window.addEventListener('load', () => {
+            if (window.vendedorDashboard) {
+                console.log('Dashboard del vendedor cargado correctamente');
+            } else {
+                console.log('Dashboard del vendedor no disponible');
+            }
+        });
+    </script>
+</body>
+</html>

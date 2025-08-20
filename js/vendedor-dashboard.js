@@ -47,14 +47,24 @@ class VendedorDashboard {
     }
     
     showSection(sectionName) {
+        console.log('showSection llamado con:', sectionName);
+        
         // Ocultar todas las secciones
         const sections = document.querySelectorAll('.content-section');
-        sections.forEach(section => section.style.display = 'none');
+        console.log('Secciones encontradas:', sections.length);
+        sections.forEach(section => {
+            section.style.display = 'none';
+            console.log('Sección ocultada:', section.id);
+        });
         
         // Mostrar la sección seleccionada
         const targetSection = document.getElementById(`${sectionName}-section`);
+        console.log('Sección objetivo:', targetSection);
         if (targetSection) {
             targetSection.style.display = 'block';
+            console.log('Sección mostrada:', targetSection.id);
+        } else {
+            console.error('No se encontró la sección:', `${sectionName}-section`);
         }
         
         // Actualizar título de la página
@@ -68,9 +78,14 @@ class VendedorDashboard {
             'notificaciones': 'Notificaciones'
         };
         
-        document.getElementById('pageTitle').textContent = titles[sectionName] || 'Dashboard';
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) {
+            pageTitle.textContent = titles[sectionName] || 'Dashboard';
+            console.log('Título actualizado:', pageTitle.textContent);
+        }
         
         // Cargar datos específicos de la sección
+        console.log('Cargando datos de la sección:', sectionName);
         this.loadSectionData(sectionName);
     }
     
@@ -118,6 +133,12 @@ class VendedorDashboard {
             case 'ventas':
                 this.loadProductosVenta();
                 this.loadClientesVenta();
+                // Verificar si hay una reparación finalizada para cargar
+                if (this.reparacionFinalizada) {
+                    setTimeout(() => {
+                        this.cargarReparacionEnVentas();
+                    }, 200);
+                }
                 break;
             case 'productos':
                 this.loadProductosCatalogo();
@@ -153,12 +174,13 @@ class VendedorDashboard {
             });
         }
         
-        // Cliente en venta
-        const clienteVenta = document.getElementById('clienteVenta');
-        if (clienteVenta) {
-            clienteVenta.addEventListener('change', () => {
-                this.actualizarResumenVenta();
-                this.cargarMaterialesReparacionCliente();
+        // Búsqueda de cliente por cédula
+        const buscarCedulaCliente = document.getElementById('buscarCedulaCliente');
+        if (buscarCedulaCliente) {
+            buscarCedulaCliente.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.buscarClientePorCedula();
+                }
             });
         }
         
@@ -342,11 +364,31 @@ class VendedorDashboard {
         container.innerHTML = '';
         this.productosSeleccionados.forEach((producto, index) => {
             const div = document.createElement('div');
-            div.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
+            
+            // Determinar el estilo según el tipo de producto
+            let borderClass = 'border rounded';
+            let iconClass = 'fas fa-box';
+            
+            if (producto.tipo === 'material_reparacion') {
+                borderClass = 'border border-primary rounded';
+                iconClass = 'fas fa-tools';
+            } else if (producto.tipo === 'mano_obra') {
+                borderClass = 'border border-success rounded';
+                iconClass = 'fas fa-wrench';
+            }
+            
+            div.className = `d-flex justify-content-between align-items-center mb-2 p-2 ${borderClass}`;
+            
+            let observacionesHtml = '';
+            if (producto.observaciones) {
+                observacionesHtml = `<br><small class="text-info"><i class="fas fa-info-circle me-1"></i>${producto.observaciones}</small>`;
+            }
+            
             div.innerHTML = `
                 <div>
-                    <strong>${producto.nombre}</strong><br>
+                    <strong><i class="${iconClass} me-1"></i>${producto.nombre}</strong><br>
                     <small class="text-muted">$${producto.precio} x ${producto.cantidad}</small>
+                    ${observacionesHtml}
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="fw-bold">$${(producto.precio * producto.cantidad).toFixed(2)}</span>
@@ -818,7 +860,6 @@ class VendedorDashboard {
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
                 <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
-                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -852,7 +893,6 @@ class VendedorDashboard {
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
                 <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
-                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock < 10 ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -907,6 +947,7 @@ class VendedorDashboard {
             const option = document.createElement('option');
             option.value = cliente.nombre;
             option.textContent = `${cliente.nombre} - ${cliente.cedula}`;
+            option.dataset.clienteId = cliente.id;
             select.appendChild(option);
         });
     }
@@ -947,6 +988,28 @@ class VendedorDashboard {
         this.cerrarModal('clienteModal');
         this.loadClientes();
         this.loadClientesVenta();
+        
+        // Si estamos en el módulo de ventas, seleccionar automáticamente el nuevo cliente
+        const ventasSection = document.getElementById('ventas-section');
+        if (ventasSection && ventasSection.style.display !== 'none') {
+            const clienteVentaHidden = document.getElementById('clienteVenta');
+            const buscarCedulaInput = document.getElementById('buscarCedulaCliente');
+            
+            if (clienteVentaHidden) {
+                clienteVentaHidden.value = nombre;
+                this.mostrarInformacionCliente();
+            }
+            
+            // Limpiar el campo de búsqueda y habilitar la cédula en el modal
+            if (buscarCedulaInput) {
+                buscarCedulaInput.value = '';
+            }
+            
+            const cedulaInput = document.getElementById('cedulaCliente');
+            if (cedulaInput) {
+                cedulaInput.readOnly = false; // Habilitar edición de cédula
+            }
+        }
     }
     
     // Gestión de Reparaciones
@@ -1522,12 +1585,46 @@ class VendedorDashboard {
             
             // Generar recibo de reparación
             this.generarReciboReparacion(reparacion);
+            
+            // Guardar información de la reparación finalizada para cargarla en ventas
+            this.reparacionFinalizada = {
+                id: reparacion.id,
+                cliente: reparacion.cliente,
+                materiales: reparacion.materiales || [],
+                manoObra: reparacion.manoObra || 0,
+                observacionesManoObra: reparacion.observacionesManoObra || '',
+                marca: reparacion.marca,
+                modelo: reparacion.modelo,
+                falla: reparacion.falla
+            };
+            
+            // Redirigir al módulo de ventas usando el enlace de navegación
+            console.log('=== INICIANDO REDIRECCIÓN AL MÓDULO DE VENTAS ===');
+            
+            // Buscar el enlace de ventas y simular un clic
+            const ventasLink = document.querySelector('[data-section="ventas"]');
+            if (ventasLink) {
+                console.log('Enlace de ventas encontrado, simulando clic...');
+                ventasLink.click();
+                
+                // Cargar automáticamente los datos de la reparación en el módulo de ventas
+                setTimeout(() => {
+                    this.cargarReparacionEnVentas();
+                }, 100);
+                
+                this.showNotification('Reparación finalizada. Cargando datos en módulo de ventas...', 'info');
+                console.log('=== REDIRECCIÓN COMPLETADA ===');
+            } else {
+                console.error('No se encontró el enlace de ventas');
+                this.showNotification('Error: No se pudo redirigir al módulo de ventas', 'error');
+            }
         }
     }
     
     generarReciboReparacion(reparacion) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
         
         // Encabezado
         doc.setFontSize(20);
@@ -1601,6 +1698,10 @@ class VendedorDashboard {
         
         // Guardar PDF
         doc.save(`reparacion-${reparacion.id}.pdf`);
+        } catch (error) {
+            console.error('Error al generar recibo de reparación:', error);
+            this.showNotification('Error al generar el recibo PDF', 'error');
+        }
     }
     
     actualizarSelectClientesReparacion() {
@@ -2377,6 +2478,363 @@ class VendedorDashboard {
                 }
             }
         });
+    }
+    
+    cargarReparacionEnVentas() {
+        if (!this.reparacionFinalizada) {
+            console.log('No hay reparación finalizada para cargar');
+            return;
+        }
+        
+        console.log('Cargando reparación en módulo de ventas:', this.reparacionFinalizada);
+        
+        const reparacion = this.reparacionFinalizada;
+        
+        // Limpiar productos seleccionados actuales
+        this.productosSeleccionados = [];
+        
+        // Agregar materiales de la reparación como productos de venta
+        if (reparacion.materiales && reparacion.materiales.length > 0) {
+            reparacion.materiales.forEach(material => {
+                // Buscar el producto correspondiente en el catálogo
+                const productos = this.getProductos();
+                const producto = productos.find(p => p.nombre.toLowerCase().includes(material.producto.toLowerCase()) || 
+                                                   p.codigo.toLowerCase().includes(material.producto.toLowerCase()));
+                
+                if (producto) {
+                    // Agregar el material como producto de venta
+                    this.productosSeleccionados.push({
+                        id: producto.id,
+                        nombre: producto.nombre,
+                        precio: material.precio,
+                        cantidad: material.cantidad,
+                        descuento: 0,
+                        tipo: 'material_reparacion',
+                        reparacionId: reparacion.id
+                    });
+                } else {
+                    // Si no se encuentra el producto, crear un item genérico
+                    this.productosSeleccionados.push({
+                        id: `material_${Date.now()}_${Math.random()}`,
+                        nombre: material.producto,
+                        precio: material.precio,
+                        cantidad: material.cantidad,
+                        descuento: 0,
+                        tipo: 'material_reparacion',
+                        reparacionId: reparacion.id
+                    });
+                }
+            });
+        }
+        
+        // Agregar mano de obra como item de venta
+        if (reparacion.manoObra && reparacion.manoObra > 0) {
+            this.productosSeleccionados.push({
+                id: `mano_obra_${reparacion.id}`,
+                nombre: `Mano de Obra - Reparación #${reparacion.id}`,
+                precio: reparacion.manoObra,
+                cantidad: 1,
+                descuento: 0,
+                tipo: 'mano_obra',
+                reparacionId: reparacion.id,
+                observaciones: reparacion.observacionesManoObra
+            });
+        }
+        
+        // Buscar y seleccionar automáticamente el cliente de la reparación
+        const clientes = this.getClientes();
+        const cliente = clientes.find(c => c.nombre === reparacion.cliente);
+        
+        if (cliente) {
+            const clienteVentaHidden = document.getElementById('clienteVenta');
+            const buscarCedulaInput = document.getElementById('buscarCedulaCliente');
+            
+            if (clienteVentaHidden && buscarCedulaInput) {
+                clienteVentaHidden.value = cliente.nombre;
+                buscarCedulaInput.value = cliente.cedula;
+                this.mostrarInformacionCliente();
+            }
+        }
+        
+        // Mostrar información de la reparación en "Detalles de la Venta"
+        this.mostrarInformacionReparacion(reparacion);
+        
+        // Actualizar la interfaz
+        this.actualizarProductosSeleccionados();
+        this.actualizarResumenVenta();
+        
+        // Mostrar información de la reparación
+        this.mostrarInformacionReparacion(reparacion);
+        
+        // Limpiar la reparación finalizada
+        this.reparacionFinalizada = null;
+        
+        console.log('Reparación cargada exitosamente en módulo de ventas');
+    }
+    
+    buscarClientePorCedula() {
+        const cedulaInput = document.getElementById('buscarCedulaCliente');
+        const clienteVentaHidden = document.getElementById('clienteVenta');
+        
+        if (!cedulaInput || !clienteVentaHidden) return;
+        
+        const cedula = cedulaInput.value.trim();
+        
+        if (!cedula) {
+            this.showNotification('Por favor ingrese una cédula o RUC', 'warning');
+            return;
+        }
+        
+        // Verificar si es una cédula por defecto
+        const clientePorDefecto = this.obtenerClientePorDefecto(cedula);
+        if (clientePorDefecto) {
+            // Es una cédula por defecto, crear o seleccionar el cliente
+            this.procesarClientePorDefecto(clientePorDefecto);
+            return;
+        }
+        
+        // Buscar cliente por cédula
+        const clientes = this.getClientes();
+        const cliente = clientes.find(c => c.cedula === cedula);
+        
+        if (cliente) {
+            // Cliente encontrado
+            clienteVentaHidden.value = cliente.nombre;
+            this.mostrarInformacionCliente();
+            this.ocultarInformacionReparacion(); // Ocultar información de reparación
+            this.actualizarResumenVenta();
+            this.cargarMaterialesReparacionCliente();
+            
+            this.showNotification(`Cliente encontrado: ${cliente.nombre}`, 'success');
+        } else {
+            // Cliente no encontrado
+            clienteVentaHidden.value = '';
+            this.ocultarInformacionCliente();
+            this.ocultarInformacionReparacion(); // Ocultar información de reparación
+            
+            // Mostrar opción para crear nuevo cliente
+            this.mostrarOpcionCrearCliente(cedula);
+        }
+    }
+    
+    obtenerClientePorDefecto(cedula) {
+        // Lista de cédulas por defecto con sus datos correspondientes
+        const clientesPorDefecto = {
+            '1234567890': {
+                nombre: 'Juan Pérez',
+                direccion: 'Av. Principal 123, Quito',
+                telefono: '0987654321',
+                email: 'juan.perez@email.com'
+            },
+            '0987654321': {
+                nombre: 'María González',
+                direccion: 'Calle Secundaria 456, Guayaquil',
+                telefono: '0998765432',
+                email: 'maria.gonzalez@email.com'
+            },
+            '1111111111': {
+                nombre: 'Carlos Rodríguez',
+                direccion: 'Av. Los Shyris 789, Quito',
+                telefono: '0977777777',
+                email: 'carlos.rodriguez@email.com'
+            },
+            '2222222222': {
+                nombre: 'Ana López',
+                direccion: 'Calle Amazonas 321, Cuenca',
+                telefono: '0966666666',
+                email: 'ana.lopez@email.com'
+            }
+        };
+        
+        return clientesPorDefecto[cedula] || null;
+    }
+    
+    procesarClientePorDefecto(datosCliente) {
+        const cedulaInput = document.getElementById('buscarCedulaCliente');
+        const cedula = cedulaInput.value.trim();
+        const clientes = this.getClientes();
+        
+        // Verificar si ya existe el cliente por defecto
+        const clienteExistente = clientes.find(c => c.cedula === cedula);
+        
+        if (clienteExistente) {
+            // Si ya existe, seleccionarlo
+            const clienteVentaHidden = document.getElementById('clienteVenta');
+            if (clienteVentaHidden) {
+                clienteVentaHidden.value = clienteExistente.nombre;
+                this.mostrarInformacionCliente();
+                this.actualizarResumenVenta();
+                this.cargarMaterialesReparacionCliente();
+            }
+            
+            this.showNotification(`Cliente por defecto encontrado: ${clienteExistente.nombre}`, 'success');
+        } else {
+            // Si no existe, crearlo automáticamente
+            const clientePorDefecto = {
+                id: Date.now().toString(),
+                cedula: cedula,
+                nombre: datosCliente.nombre,
+                direccion: datosCliente.direccion,
+                telefono: datosCliente.telefono,
+                email: datosCliente.email,
+                fechaCreacion: new Date().toISOString()
+            };
+            
+            clientes.push(clientePorDefecto);
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+            
+            // Seleccionar el cliente creado
+            const clienteVentaHidden = document.getElementById('clienteVenta');
+            if (clienteVentaHidden) {
+                clienteVentaHidden.value = clientePorDefecto.nombre;
+                this.mostrarInformacionCliente();
+                this.actualizarResumenVenta();
+                this.cargarMaterialesReparacionCliente();
+            }
+            
+            this.showNotification(`Cliente por defecto creado: ${clientePorDefecto.nombre}`, 'success');
+            console.log('Cliente por defecto creado:', clientePorDefecto);
+        }
+    }
+    
+    mostrarOpcionCrearCliente(cedula) {
+        const infoSection = document.getElementById('infoClienteSection');
+        if (!infoSection) return;
+        
+        infoSection.innerHTML = `
+            <div class="alert alert-warning">
+                <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Cliente no encontrado
+                </h6>
+                <p class="mb-2">No se encontró un cliente con la cédula/RUC: <strong>${cedula}</strong></p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success btn-sm" onclick="vendedorDashboard.crearClienteConCedula('${cedula}')">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear nuevo cliente con esta cédula
+                    </button>
+                </div>
+            </div>
+        `;
+        infoSection.style.display = 'block';
+    }
+    
+    crearClienteConCedula(cedula) {
+        // Pre-llenar el modal de cliente con la cédula
+        const cedulaInput = document.getElementById('cedulaCliente');
+        if (cedulaInput) {
+            cedulaInput.value = cedula;
+            cedulaInput.readOnly = true; // Hacer la cédula de solo lectura
+        }
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('clienteModal'));
+        modal.show();
+        
+        // Ocultar la sección de información
+        this.ocultarInformacionCliente();
+    }
+    
+    ocultarInformacionCliente() {
+        const infoSection = document.getElementById('infoClienteSection');
+        if (infoSection) {
+            infoSection.style.display = 'none';
+        }
+    }
+    
+    ocultarInformacionReparacion() {
+        const infoSection = document.getElementById('infoReparacionSection');
+        if (infoSection) {
+            infoSection.style.display = 'none';
+        }
+    }
+    
+    mostrarInformacionCliente() {
+        const clienteVentaHidden = document.getElementById('clienteVenta');
+        const infoSection = document.getElementById('infoClienteSection');
+        
+        if (!clienteVentaHidden || !infoSection) return;
+        
+        const clienteSeleccionado = clienteVentaHidden.value;
+        
+        if (!clienteSeleccionado) {
+            infoSection.style.display = 'none';
+            return;
+        }
+        
+        // Buscar el cliente seleccionado
+        const clientes = this.getClientes();
+        const cliente = clientes.find(c => c.nombre === clienteSeleccionado);
+        
+        if (cliente) {
+            // Mostrar información del cliente
+            infoSection.innerHTML = `
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="mb-0">
+                            <i class="fas fa-user-check me-2"></i>
+                            Información del Cliente
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <!-- Nombre del cliente en la parte superior -->
+                        <div class="text-center mb-3">
+                            <h5 class="text-primary mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                ${cliente.nombre}
+                            </h5>
+                            <small class="text-muted">Cliente registrado</small>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted">Cédula/RUC:</small><br>
+                                <strong id="cedulaClienteInfo">${cliente.cedula}</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Teléfono:</small><br>
+                                <strong id="telefonoClienteInfo">${cliente.telefono}</strong>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">Dirección:</small><br>
+                            <strong id="direccionClienteInfo">${cliente.direccion}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+            infoSection.style.display = 'block';
+        } else {
+            infoSection.style.display = 'none';
+        }
+    }
+    
+    mostrarInformacionReparacion(reparacion) {
+        // Actualizar la sección de información de reparación en "Detalles de la Venta"
+        const infoSection = document.getElementById('infoReparacionSection');
+        
+        if (infoSection) {
+            infoSection.innerHTML = `
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-tools me-2"></i>
+                        Información de Reparación #${reparacion.id}
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Moto:</strong> ${reparacion.marca} ${reparacion.modelo}<br>
+                            <strong>Falla:</strong> ${reparacion.falla}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Materiales:</strong> ${reparacion.materiales ? reparacion.materiales.length : 0} items<br>
+                            <strong>Mano de Obra:</strong> $${reparacion.manoObra ? reparacion.manoObra.toFixed(2) : '0.00'}<br>
+                            <strong>Estado:</strong> <span class="badge bg-success">Finalizada</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            infoSection.style.display = 'block';
+        }
     }
 }
 

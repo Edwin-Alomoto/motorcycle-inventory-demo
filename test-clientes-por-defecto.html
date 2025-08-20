@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Clientes por Defecto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-10 offset-md-1">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4><i class="fas fa-user-plus me-2"></i>Test: Clientes por Defecto</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <h5><i class="fas fa-info-circle me-2"></i>Clientes por Defecto Disponibles</h5>
+                            <p>El sistema incluye clientes predefinidos que se crean automáticamente al ingresar sus cédulas:</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-list me-2"></i>Lista de Cédulas por Defecto</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead class="table-success">
+                                                    <tr>
+                                                        <th>Cédula/RUC</th>
+                                                        <th>Nombre</th>
+                                                        <th>Teléfono</th>
+                                                        <th>Ciudad</th>
+                                                        <th>Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><code>1234567890</code></td>
+                                                        <td><strong>Juan Pérez</strong></td>
+                                                        <td>0987654321</td>
+                                                        <td>Quito</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success" onclick="probarCliente('1234567890')">
+                                                                <i class="fas fa-search me-1"></i>Probar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><code>0987654321</code></td>
+                                                        <td><strong>María González</strong></td>
+                                                        <td>0998765432</td>
+                                                        <td>Guayaquil</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success" onclick="probarCliente('0987654321')">
+                                                                <i class="fas fa-search me-1"></i>Probar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><code>1111111111</code></td>
+                                                        <td><strong>Carlos Rodríguez</strong></td>
+                                                        <td>0977777777</td>
+                                                        <td>Quito</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success" onclick="probarCliente('1111111111')">
+                                                                <i class="fas fa-search me-1"></i>Probar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><code>2222222222</code></td>
+                                                        <td><strong>Ana López</strong></td>
+                                                        <td>0966666666</td>
+                                                        <td>Cuenca</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success" onclick="probarCliente('2222222222')">
+                                                                <i class="fas fa-search me-1"></i>Probar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-play me-2"></i>Instrucciones</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ol>
+                                            <li>Abre el dashboard del vendedor</li>
+                                            <li>Ve al módulo de ventas</li>
+                                            <li>Ingresa una de las cédulas de la lista</li>
+                                            <li>El cliente se creará automáticamente</li>
+                                            <li>Se mostrará toda su información</li>
+                                        </ol>
+                                        
+                                        <div class="alert alert-info mt-3">
+                                            <h6><i class="fas fa-lightbulb me-2"></i>Tip</h6>
+                                            <p class="mb-0">Puedes usar el botón "Probar" para copiar la cédula al portapapeles.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="vendedor-dashboard.html" class="btn btn-primary btn-lg">
+                                <i class="fas fa-external-link-alt me-2"></i>
+                                Abrir Dashboard del Vendedor
+                            </a>
+                            
+                            <button class="btn btn-success" onclick="probarTodosClientes()">
+                                <i class="fas fa-magic me-2"></i>
+                                Probar Todos los Clientes
+                            </button>
+                        </div>
+                        
+                        <div id="resultado" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/vendedor-dashboard.js"></script>
+    
+    <script>
+        function probarCliente(cedula) {
+            // Copiar cédula al portapapeles
+            navigator.clipboard.writeText(cedula).then(() => {
+                mostrarResultado(`Cédula ${cedula} copiada al portapapeles. Ahora puedes pegarla en el dashboard.`, 'success');
+            }).catch(() => {
+                mostrarResultado(`Cédula: ${cedula}`, 'info');
+            });
+        }
+        
+        function probarTodosClientes() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = `
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-cog fa-spin me-2"></i>Probando Todos los Clientes</h5>
+                    <p>Se están creando todos los clientes por defecto...</p>
+                </div>
+            `;
+            
+            if (window.vendedorDashboard) {
+                console.log('=== PROBANDO TODOS LOS CLIENTES POR DEFECTO ===');
+                
+                const cedulas = ['1234567890', '0987654321', '1111111111', '2222222222'];
+                let clientesCreados = 0;
+                
+                cedulas.forEach((cedula, index) => {
+                    setTimeout(() => {
+                        console.log(`Probando cédula: ${cedula}`);
+                        
+                        // Simular la búsqueda
+                        const cedulaInput = document.getElementById('buscarCedulaCliente');
+                        if (cedulaInput) {
+                            cedulaInput.value = cedula;
+                            window.vendedorDashboard.buscarClientePorCedula();
+                            clientesCreados++;
+                            
+                            if (clientesCreados === cedulas.length) {
+                                resultado.innerHTML = `
+                                    <div class="alert alert-info">
+                                        <h5><i class="fas fa-check-circle me-2"></i>Prueba Completada</h5>
+                                        <p>Se han probado todos los clientes por defecto:</p>
+                                        <ul>
+                                            <li>1234567890 - Juan Pérez</li>
+                                            <li>0987654321 - María González</li>
+                                            <li>1111111111 - Carlos Rodríguez</li>
+                                            <li>2222222222 - Ana López</li>
+                                        </ul>
+                                        <p>Ahora puedes probar la funcionalidad en el dashboard del vendedor.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }, index * 1000); // Esperar 1 segundo entre cada cliente
+                });
+                
+            } else {
+                resultado.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Error</h5>
+                        <p>El dashboard del vendedor no está disponible.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function mostrarResultado(mensaje, tipo) {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = `
+                <div class="alert alert-${tipo} alert-dismissible fade show">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+        
+        // Verificar si el dashboard está cargado
+        window.addEventListener('load', () => {
+            if (window.vendedorDashboard) {
+                console.log('✅ Dashboard del vendedor cargado correctamente');
+            } else {
+                console.log('❌ Dashboard del vendedor no disponible');
+            }
+        });
+    </script>
+</body>
+</html>
