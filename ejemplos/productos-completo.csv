@@ -1,0 +1,21 @@
+codigo,nombre,descripcion,precio,descuentoMinimo,descuentoMaximo,stock,stockMinimo,stockMaximo,estado,proveedor
+PROD001,Aceite de Motor 4T,Aceite sintético para motos 4T 1L,15.50,0.00,0.00,50,5,100,Activo,Aceites Pro
+PROD002,Filtro de Aire,Filtro de aire de alta calidad universal,8.75,0.00,0.00,30,5,100,Activo,Filtros Max
+PROD003,Pastillas de Freno,Par de pastillas de freno delantero,12.00,0.00,0.00,25,5,100,Activo,Frenos Seguros
+PROD004,Cadena de Transmisión,Cadena de transmisión 520 para motos,45.00,0.00,0.00,15,5,100,Activo,Transmisiones Rápidas
+PROD005,Bujía NGK,Bujía NGK CR8E para motos,5.25,0.00,0.00,100,5,100,Activo,Bujías Elite
+PROD006,Aceite de Transmisión,Aceite para transmisión 80W-90 1L,18.00,0.00,0.00,20,5,100,Activo,Aceites Pro
+PROD007,Filtro de Aceite,Filtro de aceite universal,6.50,0.00,0.00,40,5,100,Activo,Filtros Max
+PROD008,Neumático Trasero,Neumático trasero 130/70-17,85.00,0.00,0.00,10,5,100,Activo,Neumáticos Plus
+PROD009,Neumático Delantero,Neumático delantero 110/70-17,75.00,0.00,0.00,10,5,100,Activo,Neumáticos Plus
+PROD010,Batería 12V,Batería 12V 7Ah para motos,65.00,0.00,0.00,8,5,100,Activo,Baterías Power
+PROD011,Espejo Retrovisor,Espejo retrovisor izquierdo universal,22.00,0.00,0.00,15,5,100,Activo,Accesorios Moto
+PROD012,Manillar Completo,Manillar completo con empuñaduras,35.00,0.00,0.00,5,5,100,Activo,Accesorios Moto
+PROD013,Luces LED,Kit de luces LED para moto,28.50,0.00,0.00,12,5,100,Activo,Iluminación Pro
+PROD014,Guantes de Moto,Guantes de cuero para moto talla M,45.00,0.00,0.00,20,5,100,Activo,Protección Total
+PROD015,Casco Integral,Casco integral certificado talla L,120.00,0.00,0.00,8,5,100,Activo,Protección Total
+PROD016,Freno de Mano,Freno de mano universal,15.75,0.00,0.00,18,5,100,Activo,Frenos Seguros
+PROD017,Embrague,Kit de embrague completo,95.00,0.00,0.00,6,5,100,Activo,Transmisiones Rápidas
+PROD018,Aceite de Frenos,Aceite de frenos DOT4 500ml,12.50,0.00,0.00,25,5,100,Activo,Aceites Pro
+PROD019,Cable de Acelerador,Cable de acelerador universal,8.00,0.00,0.00,35,5,100,Activo,Accesorios Moto
+PROD020,Silenciador,Silenciador deportivo universal,180.00,0.00,0.00,4,5,100,Activo,Accesorios Moto

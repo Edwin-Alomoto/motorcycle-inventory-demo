@@ -873,6 +873,13 @@
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
                         </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" onclick="descargarFormatoProveedores()">
+                                <i class="fas fa-download me-1"></i>Descargar Formato CSV
+                            </button>
+                            <div class="form-text mt-2">Descarga el formato CSV para rellenarlo y subirlo</div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -921,7 +928,12 @@
                                             <th>Nombre</th>
                                             <th>Descripción</th>
                                             <th>Precio</th>
+                                            <th>Descuento Mín.</th>
+                                            <th>Descuento Máx.</th>
                                             <th>Stock</th>
+                                            <th>Stock Mín.</th>
+                                            <th>Stock Máx.</th>
+                                            <th>Estado</th>
                                             <th>Proveedor</th>
                                         </tr>
                                     </thead>
@@ -931,7 +943,12 @@
                                             <td>Aceite 4T</td>
                                             <td>Aceite sintético 1L</td>
                                             <td>15.99</td>
+                                            <td>0.00</td>
+                                            <td>0.00</td>
                                             <td>25</td>
+                                            <td>5</td>
+                                            <td>100</td>
+                                            <td>Activo</td>
                                             <td>Distribuidora Motos</td>
                                         </tr>
                                         <tr>
@@ -939,7 +956,12 @@
                                             <td>Filtro Aire</td>
                                             <td>Filtro de aire universal</td>
                                             <td>8.50</td>
+                                            <td>0.00</td>
+                                            <td>0.00</td>
                                             <td>50</td>
+                                            <td>5</td>
+                                            <td>100</td>
+                                            <td>Activo</td>
                                             <td>Repuestos SA</td>
                                         </tr>
                                     </tbody>
@@ -950,6 +972,13 @@
                         <div class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" onclick="descargarFormatoProductos()">
+                                <i class="fas fa-download me-1"></i>Descargar Formato CSV
+                            </button>
+                            <div class="form-text mt-2">Descarga el formato CSV para rellenarlo y subirlo</div>
                         </div>
                     </form>
                 </div>

@@ -801,15 +801,40 @@ class AdminDashboard {
         reader.onload = (e) => {
             try {
                 const csv = e.target.result;
-                const lines = csv.split('\n');
-                const headers = lines[0].split(',');
+                
+                // Remover BOM si existe y líneas vacías
+                let csvContent = csv.replace(/^\uFEFF/, ''); // Remover BOM
+                const lines = csvContent.split('\n').filter(line => line.trim());
+                
+                if (lines.length < 2) {
+                    this.showNotification('El archivo debe contener al menos una línea de encabezados y una línea de datos', 'warning');
+                    return;
+                }
+                
+                // Verificar si la primera línea es sep=,
+                let startIndex = 0;
+                let separator = ',';
+                if (lines[0].startsWith('sep=')) {
+                    separator = lines[0].substring(4); // Extraer el separador después de 'sep='
+                    startIndex = 1;
+                } else {
+                    // Detectar automáticamente el separador
+                    const firstDataLine = lines[startIndex];
+                    if (firstDataLine.includes(';')) {
+                        separator = ';';
+                    } else if (firstDataLine.includes(',')) {
+                        separator = ',';
+                    }
+                }
+                
+                const headers = lines[startIndex].split(separator);
                 
                 let productosCargados = 0;
                 let productosDuplicados = 0;
                 
-                for (let i = 1; i < lines.length; i++) {
+                for (let i = startIndex + 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
-                        const values = lines[i].split(',');
+                        const values = lines[i].split(separator);
                         const codigo = values[0]?.trim();
                         
                         // Verificar si el código ya existe
@@ -827,11 +852,13 @@ class AdminDashboard {
                             nombre: values[1]?.trim(),
                             descripcion: values[2]?.trim(),
                             precio: parseFloat(values[3]) || 0,
-                            descuento: 0, // Valor por defecto
-                            stock: parseInt(values[4]) || 0,
-                            stockMinimo: 5, // Valor por defecto
-                            stockMaximo: 100, // Valor por defecto
-                            proveedor: values[5]?.trim(),
+                            descuentoMinimo: parseFloat(values[4]) || 0,
+                            descuentoMaximo: parseFloat(values[5]) || 0,
+                            stock: parseInt(values[6]) || 0,
+                            stockMinimo: parseInt(values[7]) || 5,
+                            stockMaximo: parseInt(values[8]) || 100,
+                            estado: values[9]?.trim() || 'Activo',
+                            proveedor: values[10]?.trim(),
                             fechaCreacion: new Date().toISOString()
                         };
                         
@@ -865,6 +892,34 @@ class AdminDashboard {
         reader.readAsText(file);
     }
     
+    descargarFormatoProductos() {
+        // Crear contenido CSV con headers y ejemplos
+        const csvContent = `sep=;
+codigo;nombre;descripcion;precio;descuentoMinimo;descuentoMaximo;stock;stockMinimo;stockMaximo;estado;proveedor
+PROD001;Aceite de Motor 4T;Aceite sintético para motos 4T 1L;15.50;0.00;0.00;50;5;100;Activo;Aceites Pro
+PROD002;Filtro de Aire;Filtro de aire de alta calidad universal;8.75;0.00;0.00;30;5;100;Activo;Filtros Max
+PROD003;Pastillas de Freno;Par de pastillas de freno delantero;12.00;0.00;0.00;25;5;100;Activo;Frenos Seguros
+PROD004;Cadena de Transmisión;Cadena de transmisión 520 para motos;45.00;0.00;0.00;15;5;100;Activo;Transmisiones Rápidas
+PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bujías Elite`;
+        
+        // Crear blob con BOM para Excel
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'formato_productos.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        this.showNotification('Formato CSV descargado exitosamente', 'success');
+    }
+    
     cargarProveedoresMasivo() {
         const fileInput = document.getElementById('archivoProveedoresMasivo');
         const file = fileInput.files[0];
@@ -878,14 +933,38 @@ class AdminDashboard {
         reader.onload = (e) => {
             try {
                 const csv = e.target.result;
-                const lines = csv.split('\n');
+                
+                // Remover BOM si existe y líneas vacías
+                let csvContent = csv.replace(/^\uFEFF/, ''); // Remover BOM
+                const lines = csvContent.split('\n').filter(line => line.trim());
+                
+                if (lines.length < 2) {
+                    this.showNotification('El archivo debe contener al menos una línea de encabezados y una línea de datos', 'warning');
+                    return;
+                }
+                
+                // Verificar si la primera línea es sep=,
+                let startIndex = 0;
+                let separator = ',';
+                if (lines[0].startsWith('sep=')) {
+                    separator = lines[0].substring(4); // Extraer el separador después de 'sep='
+                    startIndex = 1;
+                } else {
+                    // Detectar automáticamente el separador
+                    const firstDataLine = lines[startIndex];
+                    if (firstDataLine.includes(';')) {
+                        separator = ';';
+                    } else if (firstDataLine.includes(',')) {
+                        separator = ',';
+                    }
+                }
                 
                 let proveedoresCargados = 0;
                 let proveedoresDuplicados = 0;
                 
-                for (let i = 1; i < lines.length; i++) {
+                for (let i = startIndex + 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
-                        const values = lines[i].split(',');
+                        const values = lines[i].split(separator);
                         const ruc = values[0]?.trim();
                         
                         // Verificar si el RUC ya existe
@@ -934,6 +1013,34 @@ class AdminDashboard {
             }
         };
         reader.readAsText(file);
+    }
+    
+    descargarFormatoProveedores() {
+        // Crear contenido CSV con headers y ejemplos
+        const csvContent = `sep=;
+ruc;nombre;direccion;telefono;email
+12345678901;Distribuidora Motos;Av. Principal 123;0987654321;contacto@distribuidora.com
+98765432109;Repuestos SA;Calle Secundaria 456;0123456789;info@repuestos.com
+45678912301;Aceites Pro;Av. Industrial 789;0555666777;ventas@aceitespro.com
+78912345602;Filtros Max;Calle Comercial 321;0444555666;info@filtrosmax.com
+32165498703;Frenos Seguros;Av. Técnica 654;0333444555;contacto@frenosseguros.com`;
+        
+        // Crear blob con BOM para Excel
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'formato_proveedores.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        this.showNotification('Formato CSV descargado exitosamente', 'success');
     }
     
     // Reportes
@@ -2728,6 +2835,14 @@ function procesarCargaMasivaProductos() {
 
 function procesarCargaMasivaProveedores() {
     adminDashboard.cargarProveedoresMasivo();
+}
+
+function descargarFormatoProductos() {
+    adminDashboard.descargarFormatoProductos();
+}
+
+function descargarFormatoProveedores() {
+    adminDashboard.descargarFormatoProveedores();
 }
 
 function guardarProveedor() {
