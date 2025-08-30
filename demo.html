@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Sistema de Gestión de Motos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #10b981 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .feature-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-demo {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border: none;
+            color: white;
+        }
+        .btn-demo:hover {
+            background: linear-gradient(135deg, #2a5298, #10b981);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-motorcycle me-3"></i>
+                        Sistema de Gestión de Motos
+                    </h1>
+                    <p class="lead mb-4">
+                        Solución completa para talleres de reparación de motocicletas. 
+                        Gestiona inventario, clientes, reparaciones y genera reportes con códigos QR.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="index.html" class="btn btn-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </a>
+                        <button class="btn btn-outline-light btn-lg" onclick="poblarDatos()">
+                            <i class="fas fa-database me-2"></i>Poblar Datos Demo
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-tools" style="font-size: 10rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col">
+                    <h2 class="display-5 fw-bold mb-3">Características Principales</h2>
+                    <p class="lead text-muted">Todo lo que necesitas para gestionar tu taller</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Gestión de Inventario</h5>
+                            <p class="text-muted">Control completo de productos, stock, proveedores y alertas de inventario bajo.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-users fa-3x text-success mb-3"></i>
+                            <h5 class="fw-bold">Gestión de Clientes</h5>
+                            <p class="text-muted">Base de datos de clientes con historial de reparaciones y facturación.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                            <h5 class="fw-bold">Reparaciones</h5>
+                            <p class="text-muted">Seguimiento completo de reparaciones con materiales, tiempos y estados.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-qrcode fa-3x text-info mb-3"></i>
+                            <h5 class="fw-bold">Códigos QR</h5>
+                            <p class="text-muted">Genera PDFs con códigos QR para catálogos de productos de forma automática.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-chart-bar fa-3x text-danger mb-3"></i>
+                            <h5 class="fw-bold">Reportes</h5>
+                            <p class="text-muted">Informes detallados de ventas, inventario y rendimiento del taller.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4">
+                            <i class="fas fa-mobile-alt fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold">Responsive</h5>
+                            <p class="text-muted">Funciona perfectamente en computadoras, tablets y teléfonos móviles.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col">
+                    <h2 class="display-5 fw-bold mb-3">Prueba la Demo</h2>
+                    <p class="lead text-muted">Explora las diferentes funcionalidades del sistema</p>
+                </div>
+            </div>
+            
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Panel Administrador</h5>
+                            <p class="text-muted mb-4">Acceso completo a todas las funcionalidades del sistema.</p>
+                            <div class="mb-3">
+                                <small class="text-muted">Usuario: <strong>admin</strong></small><br>
+                                <small class="text-muted">Contraseña: <strong>admin123</strong></small>
+                            </div>
+                            <a href="admin-dashboard.html" class="btn btn-demo btn-lg w-100">
+                                <i class="fas fa-cog me-2"></i>Acceder como Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <i class="fas fa-user-tie fa-3x text-success mb-3"></i>
+                            <h5 class="fw-bold">Panel Vendedor</h5>
+                            <p class="text-muted mb-4">Vista simplificada para personal de ventas y atención.</p>
+                            <div class="mb-3">
+                                <small class="text-muted">Usuario: <strong>vendedor</strong></small><br>
+                                <small class="text-muted">Contraseña: <strong>vendedor123</strong></small>
+                            </div>
+                            <a href="vendedor-dashboard.html" class="btn btn-demo btn-lg w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Acceder como Vendedor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-motorcycle me-2"></i>
+                Sistema de Gestión de Motos - Demo
+                <span class="mx-2">|</span>
+                <i class="fas fa-code me-2"></i>
+                Desarrollado con tecnologías web modernas
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/populate-data.js"></script>
+    <script>
+        function poblarDatos() {
+            if (typeof DataPopulator !== 'undefined') {
+                const populator = new DataPopulator();
+                alert('¡Datos de ejemplo agregados! Ahora puedes iniciar sesión y explorar el sistema.');
+            } else {
+                console.error('DataPopulator no está disponible');
+                alert('Error al cargar los datos de ejemplo. Por favor, intenta de nuevo.');
+            }
+        }
+
+        // Mostrar mensaje de bienvenida
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Sistema de Gestión de Motos - Demo cargado');
+            console.log('👨‍💼 Admin: admin / admin123');
+            console.log('🛒 Vendedor: vendedor / vendedor123');
+        });
+    </script>
+</body>
+</html>
+
