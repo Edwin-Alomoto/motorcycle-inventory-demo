@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</head>
+<body>
+    <h1>Test Simple Dashboard</h1>
+    <button onclick="testInicializacion()">Test Inicialización</button>
+    <button onclick="testGenerarPDF()">Test Generar PDF</button>
+    <div id="resultado"></div>
+
+    <script>
+        let adminDashboard = null;
+        window.adminDashboard = null;
+
+        function testInicializacion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<p>Probando inicialización...</p>';
+            
+            try {
+                console.log('=== TEST INICIALIZACIÓN ===');
+                console.log('AdminDashboard disponible:', typeof AdminDashboard);
+                
+                if (typeof AdminDashboard === 'undefined') {
+                    resultado.innerHTML = '<p style="color: red;">ERROR: AdminDashboard no está disponible</p>';
+                    return;
+                }
+                
+                adminDashboard = new AdminDashboard();
+                window.adminDashboard = adminDashboard;
+                
+                console.log('Dashboard creado:', adminDashboard);
+                console.log('Métodos disponibles:', Object.getOwnPropertyNames(Object.getPrototypeOf(adminDashboard)));
+                
+                // Verificar métodos específicos
+                const metodos = ['getProductos', 'showNotification', 'generarPDFProductos'];
+                for (const metodo of metodos) {
+                    if (typeof adminDashboard[metodo] === 'function') {
+                        console.log(`✓ ${metodo} disponible`);
+                    } else {
+                        console.log(`✗ ${metodo} NO disponible`);
+                    }
+                }
+                
+                resultado.innerHTML = '<p style="color: green;">Dashboard inicializado correctamente</p>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultado.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+
+        function testGenerarPDF() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<p>Probando generación de PDF...</p>';
+            
+            try {
+                if (!adminDashboard) {
+                    resultado.innerHTML = '<p style="color: red;">ERROR: Dashboard no inicializado</p>';
+                    return;
+                }
+                
+                if (typeof adminDashboard.generarPDFProductos !== 'function') {
+                    resultado.innerHTML = '<p style="color: red;">ERROR: Método generarPDFProductos no disponible</p>';
+                    return;
+                }
+                
+                // Agregar datos de prueba
+                const productosPrueba = [
+                    {
+                        id: '1',
+                        codigo: 'PROD001',
+                        nombre: 'Aceite de Motor 4T',
+                        descripcion: 'Aceite sintético para motos 4 tiempos, 1L',
+                        precio: 12.50,
+                        stock: 45,
+                        stockMinimo: 10,
+                        stockMaximo: 100,
+                        proveedor: 'MotoParts Ecuador S.A.'
+                    }
+                ];
+                
+                localStorage.setItem('productos', JSON.stringify(productosPrueba));
+                
+                console.log('Llamando a generarPDFProductos...');
+                adminDashboard.generarPDFProductos();
+                
+                resultado.innerHTML = '<p style="color: green;">Función generarPDFProductos llamada exitosamente</p>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultado.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+
+        // Auto-inicializar al cargar
+        window.addEventListener('load', () => {
+            console.log('Página cargada, probando inicialización automática...');
+            testInicializacion();
+        });
+    </script>
+</body>
+</html>

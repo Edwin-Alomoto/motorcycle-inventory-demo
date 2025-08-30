@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sesión Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-user-shield me-2"></i>Test - Sesión de Administrador</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Esta página simula una sesión de administrador para probar la funcionalidad completa.</p>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Instrucciones:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Haz clic en "Crear Sesión Admin" para simular una sesión de administrador</li>
+                                <li>Luego haz clic en "Inicializar Dashboard" para cargar el dashboard</li>
+                                <li>Finalmente haz clic en "Probar Edición" para verificar la funcionalidad</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-success mb-3" onclick="crearSesionAdmin()">
+                                    <i class="fas fa-user-plus me-2"></i>Crear Sesión Admin
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary mb-3" onclick="inicializarDashboard()">
+                                    <i class="fas fa-cog me-2"></i>Inicializar Dashboard
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-info mb-3" onclick="cargarProductoPrueba()">
+                                    <i class="fas fa-plus me-2"></i>Cargar Producto
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning mb-3" onclick="probarEdicion()">
+                                    <i class="fas fa-edit me-2"></i>Probar Edición
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="estadoInfo" class="alert alert-secondary">
+                            <i class="fas fa-clock me-2"></i>
+                            Estado: Esperando acciones...
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productosTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div class="modal fade" id="productoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productoForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codigoProducto" class="form-label">Código</label>
+                                    <input type="text" class="form-control" id="codigoProducto" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombreProducto" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="nombreProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionProducto" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcionProducto" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codigoQRProducto" class="form-label">Código QR</label>
+                                    <input type="text" class="form-control" id="codigoQRProducto" placeholder="Ingrese el código QR del producto">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Vista Previa QR</label>
+                                    <div id="qrPreview" class="border rounded p-2 text-center" style="min-height: 120px; background-color: #f8f9fa;">
+                                        <!-- El QR por defecto se generará automáticamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="precioProducto" class="form-label">Precio</label>
+                                    <input type="number" class="form-control" id="precioProducto" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="descuentoMinimoProducto" class="form-label">Descuento Mínimo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMinimoProducto" step="0.1" value="0" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="descuentoMaximoProducto" class="form-label">Descuento Máximo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMaximoProducto" step="0.1" value="0" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockProducto" class="form-label">Stock Actual</label>
+                                    <input type="number" class="form-control" id="stockProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockMinimoProducto" class="form-label">Stock Mínimo</label>
+                                    <input type="number" class="form-control" id="stockMinimoProducto" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockMaximoProducto" class="form-label">Stock Máximo</label>
+                                    <input type="number" class="form-control" id="stockMaximoProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="proveedorProducto" class="form-label">Proveedor</label>
+                                    <select class="form-select" id="proveedorProducto" required>
+                                        <option value="">Seleccionar proveedor</option>
+                                        <option value="Proveedor A">Proveedor A</option>
+                                        <option value="Proveedor B">Proveedor B</option>
+                                        <option value="Proveedor C">Proveedor C</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    
+    <script>
+        // Producto de prueba
+        const productoPrueba = {
+            id: 'prod-test-session-001',
+            codigo: 'MOTO-TEST-SESSION-001',
+            nombre: 'Honda CBR 600RR Test Session',
+            descripcion: 'Motocicleta deportiva para prueba con sesión',
+            precio: 15000,
+            stock: 5,
+            stockMinimo: 2,
+            stockMaximo: 20,
+            proveedor: 'Proveedor A',
+            descuentoMinimo: 5,
+            descuentoMaximo: 15,
+            codigoQR: 'HONDA-CBR600RR-TEST-SESSION'
+        };
+        
+        // Función para crear sesión de administrador
+        function crearSesionAdmin() {
+            const sessionAdmin = {
+                id: 'admin-test-001',
+                name: 'Administrador de Prueba',
+                email: 'admin@test.com',
+                role: 'admin',
+                createdAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('session', JSON.stringify(sessionAdmin));
+            console.log('Sesión de administrador creada:', sessionAdmin);
+            
+            actualizarEstado('Sesión de administrador creada correctamente', 'success');
+        }
+        
+        // Función para inicializar el dashboard
+        function inicializarDashboard() {
+            try {
+                // Verificar si hay sesión
+                const session = localStorage.getItem('session');
+                if (!session) {
+                    actualizarEstado('No hay sesión. Primero crea una sesión de administrador.', 'warning');
+                    return;
+                }
+                
+                const sessionData = JSON.parse(session);
+                if (sessionData.role !== 'admin') {
+                    actualizarEstado('La sesión no es de administrador.', 'warning');
+                    return;
+                }
+                
+                // Inicializar dashboard
+                if (!window.adminDashboard) {
+                    window.adminDashboard = new AdminDashboard();
+                    console.log('Dashboard inicializado:', window.adminDashboard);
+                }
+                
+                actualizarEstado('Dashboard inicializado correctamente', 'success');
+                
+                // Verificar métodos disponibles
+                setTimeout(() => {
+                    verificarMetodos();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error al inicializar dashboard:', error);
+                actualizarEstado('Error al inicializar dashboard: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función para verificar métodos disponibles
+        function verificarMetodos() {
+            if (window.adminDashboard) {
+                const metodos = ['editarProducto', 'eliminarProducto', 'loadProductos', 'showNotification'];
+                const metodosDisponibles = metodos.filter(metodo => 
+                    typeof window.adminDashboard[metodo] === 'function'
+                );
+                
+                console.log('Métodos disponibles:', metodosDisponibles);
+                actualizarEstado(`Dashboard listo. Métodos disponibles: ${metodosDisponibles.length}/${metodos.length}`, 'success');
+            }
+        }
+        
+        // Función para cargar producto de prueba
+        function cargarProductoPrueba() {
+            localStorage.setItem('productos', JSON.stringify([productoPrueba]));
+            mostrarProductos();
+            console.log('Producto de prueba cargado:', productoPrueba);
+            actualizarEstado('Producto de prueba cargado exitosamente', 'success');
+        }
+        
+        // Función para mostrar productos en la tabla
+        function mostrarProductos() {
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            const tbody = document.getElementById('productosTable');
+            tbody.innerHTML = '';
+            
+            productos.forEach(producto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.nombre}</td>
+                    <td>$${producto.precio}</td>
+                    <td>${producto.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarProducto('${producto.id}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Función para probar edición
+        function probarEdicion() {
+            if (!window.adminDashboard) {
+                actualizarEstado('Dashboard no inicializado. Primero inicializa el dashboard.', 'warning');
+                return;
+            }
+            
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            if (productos.length === 0) {
+                actualizarEstado('No hay productos. Primero carga un producto de prueba.', 'warning');
+                return;
+            }
+            
+            console.log('Probando función editarProducto...');
+            const primerProducto = productos[0];
+            editarProducto(primerProducto.id);
+        }
+        
+        // Función para actualizar estado
+        function actualizarEstado(mensaje, tipo) {
+            const estadoInfo = document.getElementById('estadoInfo');
+            estadoInfo.className = `alert alert-${tipo}`;
+            estadoInfo.innerHTML = `<i class="fas fa-info-circle me-2"></i>${mensaje}`;
+        }
+        
+        // Función para generar vista previa del QR
+        function generarVistaPreviaQR(texto) {
+            const qrPreview = document.getElementById('qrPreview');
+            if (!qrPreview) {
+                return;
+            }
+            
+            if (!texto) {
+                texto = 'PROD-' + Date.now();
+            }
+            
+            qrPreview.innerHTML = '';
+            
+            try {
+                if (typeof QRCode === 'undefined') {
+                    qrPreview.innerHTML = '<small class="text-warning">Librería QR no disponible</small>';
+                    return;
+                }
+                
+                QRCode.toDataURL(texto, {
+                    width: 120,
+                    height: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error, url) => {
+                    if (error) {
+                        console.error('Error generando QR:', error);
+                        qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Código QR';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        qrPreview.appendChild(img);
+                    }
+                });
+            } catch (error) {
+                console.error('Error en generarVistaPreviaQR:', error);
+                qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+            }
+        }
+        
+        // Función para guardar producto (placeholder)
+        function guardarProducto() {
+            alert('Función de guardar producto no implementada en esta prueba');
+        }
+        
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Página de prueba de sesión admin cargada');
+            mostrarProductos();
+        });
+    </script>
+</body>
+</html>

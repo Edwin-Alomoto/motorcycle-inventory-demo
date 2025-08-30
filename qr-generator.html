@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Códigos QR - Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .qr-container {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background-color: #fafafa;
+        }
+        .qr-code {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        .download-btn {
+            background-color: #28a745;
+            margin-top: 15px;
+        }
+        .download-btn:hover {
+            background-color: #1e7e34;
+        }
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+        }
+        .example-btn {
+            background-color: #6c757d;
+            margin: 5px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        .example-btn:hover {
+            background-color: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Generador de Códigos QR</h1>
+        
+        <div class="form-group">
+            <label for="qrText">Texto o URL para el código QR:</label>
+            <input type="text" id="qrText" placeholder="Ingresa texto, URL, o información de contacto...">
+        </div>
+        
+        <div class="form-group">
+            <label for="qrSize">Tamaño del código QR:</label>
+            <input type="text" id="qrSize" value="256" placeholder="256">
+        </div>
+        
+        <div class="form-group">
+            <label for="qrColor">Color del código QR:</label>
+            <input type="text" id="qrColor" value="#000000" placeholder="#000000">
+        </div>
+        
+        <button onclick="generateQR()">Generar Código QR</button>
+        <button onclick="clearQR()">Limpiar</button>
+        
+        <div class="examples">
+            <h3>Ejemplos rápidos:</h3>
+            <button class="example-btn" onclick="setExample('https://www.google.com')">Google</button>
+            <button class="example-btn" onclick="setExample('tel:+1234567890')">Teléfono</button>
+            <button class="example-btn" onclick="setExample('mailto:ejemplo@email.com')">Email</button>
+            <button class="example-btn" onclick="setExample('WIFI:S:MiWiFi;T:WPA;P:MiContraseña;;')">WiFi</button>
+            <button class="example-btn" onclick="setExample('BEGIN:VCARD\nVERSION:3.0\nFN:Juan Pérez\nORG:Mi Empresa\nTEL:+1234567890\nEMAIL:juan@email.com\nEND:VCARD')">Tarjeta de Contacto</button>
+        </div>
+        
+        <div id="qrContainer" class="qr-container" style="display: none;">
+            <h3>Código QR Generado:</h3>
+            <div id="qrCode" class="qr-code"></div>
+            <button class="download-btn" onclick="downloadQR()">Descargar Código QR</button>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            const text = document.getElementById('qrText').value;
+            const size = parseInt(document.getElementById('qrSize').value) || 256;
+            const color = document.getElementById('qrColor').value || '#000000';
+            
+            if (!text) {
+                alert('Por favor ingresa algún texto o URL');
+                return;
+            }
+            
+            const qrContainer = document.getElementById('qrContainer');
+            const qrCode = document.getElementById('qrCode');
+            
+            // Limpiar contenedor anterior
+            qrCode.innerHTML = '';
+            
+            // Generar código QR
+            QRCode.toCanvas(qrCode, text, {
+                width: size,
+                color: {
+                    dark: color,
+                    light: '#FFFFFF'
+                },
+                margin: 2
+            }, function (error) {
+                if (error) {
+                    console.error('Error generando QR:', error);
+                    alert('Error generando el código QR');
+                } else {
+                    qrContainer.style.display = 'block';
+                }
+            });
+        }
+        
+        function clearQR() {
+            document.getElementById('qrText').value = '';
+            document.getElementById('qrContainer').style.display = 'none';
+        }
+        
+        function setExample(text) {
+            document.getElementById('qrText').value = text;
+            generateQR();
+        }
+        
+        function downloadQR() {
+            const canvas = document.querySelector('#qrCode canvas');
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = 'codigo-qr.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        }
+        
+        // Generar QR automáticamente al presionar Enter
+        document.getElementById('qrText').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+    </script>
+</body>
+</html>

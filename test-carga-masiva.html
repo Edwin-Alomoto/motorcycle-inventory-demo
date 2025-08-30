@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Carga Masiva Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Test Carga Masiva de Productos</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Modal de Carga Masiva</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#cargaMasivaProductosModal">
+                            <i class="fas fa-upload"></i> Abrir Modal Carga Masiva
+                        </button>
+                        
+                        <hr>
+                        
+                        <h6>Funciones de Prueba:</h6>
+                        <button class="btn btn-primary mb-2" onclick="testDescargarFormato()">
+                            <i class="fas fa-download"></i> Descargar Formato
+                        </button>
+                        
+                        <button class="btn btn-warning mb-2" onclick="testProcesarCarga()">
+                            <i class="fas fa-upload"></i> Procesar Carga (sin archivo)
+                        </button>
+                        
+                        <button class="btn btn-info mb-2" onclick="testDashboard()">
+                            <i class="fas fa-cog"></i> Verificar Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Log de Pruebas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="logContainer" style="height: 300px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                            <div class="text-muted">Los logs aparecerán aquí...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva de Productos -->
+    <div class="modal fade" id="cargaMasivaProductosModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Carga Masiva de Productos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Sube un archivo CSV con los productos que deseas cargar al sistema.
+                    </div>
+                    
+                    <form id="cargaMasivaProductosForm">
+                        <div class="mb-3">
+                            <label for="archivoProductosMasivo" class="form-label">Archivo CSV/Excel</label>
+                            <input type="file" class="form-control" id="archivoProductosMasivo" accept=".csv,.xlsx,.xls" required>
+                            <div class="form-text">Formatos soportados: CSV, Excel (.xlsx, .xls)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Formato esperado del archivo:</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Código QR</th>
+                                            <th>Precio</th>
+                                            <th>Descuento Mínimo</th>
+                                            <th>Descuento Máximo</th>
+                                            <th>Stock</th>
+                                            <th>Stock Mínimo</th>
+                                            <th>Stock Máximo</th>
+                                            <th>Estado</th>
+                                            <th>Proveedor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PROD001</td>
+                                            <td>Aceite de Motor</td>
+                                            <td>Aceite sintético 4T</td>
+                                            <td>PROD001</td>
+                                            <td>15.50</td>
+                                            <td>0.00</td>
+                                            <td>0.00</td>
+                                            <td>50</td>
+                                            <td>5</td>
+                                            <td>100</td>
+                                            <td>Activo</td>
+                                            <td>Aceites Pro</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" onclick="descargarFormatoProductos()">
+                                <i class="fas fa-download me-1"></i>Descargar Formato CSV
+                            </button>
+                            <div class="form-text mt-2">Descarga el formato CSV para rellenarlo y subirlo</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="procesarCargaMasivaProductos()">
+                        <i class="fas fa-upload me-1"></i>Cargar Productos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    
+    <script>
+        let adminDashboard;
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry mb-1 ${type}`;
+            logEntry.innerHTML = `<small class="text-muted">[${timestamp}]</small> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function testDescargarFormato() {
+            log('Probando descarga de formato...', 'info');
+            try {
+                if (adminDashboard && typeof adminDashboard.descargarFormatoProductos === 'function') {
+                    adminDashboard.descargarFormatoProductos();
+                    log('✅ Función descargarFormatoProductos ejecutada correctamente', 'success');
+                } else {
+                    log('❌ adminDashboard no está disponible o no tiene el método', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testProcesarCarga() {
+            log('Probando procesamiento de carga...', 'info');
+            try {
+                if (adminDashboard && typeof adminDashboard.cargarProductosMasivo === 'function') {
+                    adminDashboard.cargarProductosMasivo();
+                    log('✅ Función cargarProductosMasivo ejecutada correctamente', 'success');
+                } else {
+                    log('❌ adminDashboard no está disponible o no tiene el método', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testDashboard() {
+            log('Verificando estado del dashboard...', 'info');
+            log(`adminDashboard disponible: ${!!adminDashboard}`, 'info');
+            if (adminDashboard) {
+                log(`Métodos disponibles:`, 'info');
+                log(`- cargarProductosMasivo: ${typeof adminDashboard.cargarProductosMasivo}`, 'info');
+                log(`- descargarFormatoProductos: ${typeof adminDashboard.descargarFormatoProductos}`, 'info');
+                log(`- showNotification: ${typeof adminDashboard.showNotification}`, 'info');
+            }
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Inicializando dashboard...', 'info');
+            try {
+                adminDashboard = new AdminDashboard();
+                log('✅ Dashboard inicializado correctamente', 'success');
+                testDashboard();
+            } catch (error) {
+                log(`❌ Error al inicializar dashboard: ${error.message}`, 'error');
+            }
+        });
+        
+        // Función global para descargar formato
+        function descargarFormatoProductos() {
+            log('Función global descargarFormatoProductos llamada', 'info');
+            if (adminDashboard && typeof adminDashboard.descargarFormatoProductos === 'function') {
+                adminDashboard.descargarFormatoProductos();
+            } else {
+                log('❌ adminDashboard no disponible', 'error');
+            }
+        }
+        
+        // Función global para procesar carga
+        function procesarCargaMasivaProductos() {
+            log('Función global procesarCargaMasivaProductos llamada', 'info');
+            if (adminDashboard && typeof adminDashboard.cargarProductosMasivo === 'function') {
+                adminDashboard.cargarProductosMasivo();
+            } else {
+                log('❌ adminDashboard no disponible', 'error');
+            }
+        }
+    </script>
+    
+    <style>
+        .log-entry.success { color: #198754; }
+        .log-entry.error { color: #dc3545; }
+        .log-entry.warning { color: #ffc107; }
+        .log-entry.info { color: #0dcaf0; }
+    </style>
+</body>
+</html>

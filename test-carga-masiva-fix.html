@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Carga Masiva - Fix</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Test Carga Masiva - Solución</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Estado del Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="estadoSistema">
+                            <div class="alert alert-info">
+                                <i class="fas fa-spinner fa-spin"></i> Verificando estado del sistema...
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Pruebas de Funcionalidad:</h6>
+                        <button class="btn btn-success mb-2" onclick="abrirModalProductos()">
+                            <i class="fas fa-upload"></i> Abrir Modal Productos
+                        </button>
+                        
+                        <button class="btn btn-info mb-2" onclick="abrirModalProveedores()">
+                            <i class="fas fa-upload"></i> Abrir Modal Proveedores
+                        </button>
+                        
+                        <button class="btn btn-warning mb-2" onclick="verificarEstado()">
+                            <i class="fas fa-check"></i> Verificar Estado
+                        </button>
+                        
+                        <button class="btn btn-danger mb-2" onclick="reiniciarSistema()">
+                            <i class="fas fa-redo"></i> Reiniciar Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Log de Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="logContainer" style="height: 400px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px;">
+                            <div class="text-muted">Iniciando sistema...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva de Productos -->
+    <div class="modal fade" id="cargaMasivaProductosModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Carga Masiva de Productos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Sube un archivo CSV con los productos que deseas cargar al sistema.
+                    </div>
+                    
+                    <form id="cargaMasivaProductosForm">
+                        <div class="mb-3">
+                            <label for="archivoProductosMasivo" class="form-label">Archivo CSV/Excel</label>
+                            <input type="file" class="form-control" id="archivoProductosMasivo" accept=".csv,.xlsx,.xls" required>
+                            <div class="form-text">Formatos soportados: CSV, Excel (.xlsx, .xls)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Formato esperado del archivo:</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Código QR</th>
+                                            <th>Precio</th>
+                                            <th>Descuento Mínimo</th>
+                                            <th>Descuento Máximo</th>
+                                            <th>Stock</th>
+                                            <th>Stock Mínimo</th>
+                                            <th>Stock Máximo</th>
+                                            <th>Estado</th>
+                                            <th>Proveedor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PROD001</td>
+                                            <td>Aceite de Motor</td>
+                                            <td>Aceite sintético 4T</td>
+                                            <td>PROD001</td>
+                                            <td>15.50</td>
+                                            <td>0.00</td>
+                                            <td>0.00</td>
+                                            <td>50</td>
+                                            <td>5</td>
+                                            <td>100</td>
+                                            <td>Activo</td>
+                                            <td>Aceites Pro</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" onclick="descargarFormatoProductos()">
+                                <i class="fas fa-download me-1"></i>Descargar Formato CSV
+                            </button>
+                            <div class="form-text mt-2">Descarga el formato CSV para rellenarlo y subirlo</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="procesarCargaMasivaProductos()">
+                        <i class="fas fa-upload me-1"></i>Cargar Productos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva de Proveedores -->
+    <div class="modal fade" id="cargaMasivaProveedoresModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload me-2"></i>
+                        Carga Masiva de Proveedores
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Sube un archivo CSV con los proveedores que deseas cargar al sistema.
+                    </div>
+                    
+                    <form id="cargaMasivaProveedoresForm">
+                        <div class="mb-3">
+                            <label for="archivoProveedoresMasivo" class="form-label">Archivo CSV/Excel</label>
+                            <input type="file" class="form-control" id="archivoProveedoresMasivo" accept=".csv,.xlsx,.xls" required>
+                            <div class="form-text">Formatos soportados: CSV, Excel (.xlsx, .xls)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Formato esperado del archivo:</label>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>RUC</th>
+                                            <th>Nombre</th>
+                                            <th>Dirección</th>
+                                            <th>Teléfono</th>
+                                            <th>Email</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1234567890001</td>
+                                            <td>Aceites Pro</td>
+                                            <td>Av. Principal 123, Quito</td>
+                                            <td>02-234-5678</td>
+                                            <td>info@aceitespro.com</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> La primera línea del archivo debe contener los nombres de las columnas (headers).
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-primary" onclick="descargarFormatoProveedores()">
+                                <i class="fas fa-download me-1"></i>Descargar Formato CSV
+                            </button>
+                            <div class="form-text mt-2">Descarga el formato CSV para rellenarlo y subirlo</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="procesarCargaMasivaProveedores()">
+                        <i class="fas fa-upload me-1"></i>Cargar Proveedores
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    
+    <script>
+        let adminDashboard;
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry mb-1 ${type}`;
+            logEntry.innerHTML = `<small class="text-muted">[${timestamp}]</small> ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function actualizarEstadoSistema() {
+            const estadoDiv = document.getElementById('estadoSistema');
+            
+            if (!window.adminDashboard) {
+                estadoDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> 
+                        <strong>Error:</strong> Dashboard no inicializado
+                    </div>
+                `;
+                return;
+            }
+            
+            const metodosRequeridos = [
+                'cargarProductosMasivo',
+                'cargarProveedoresMasivo',
+                'descargarFormatoProductos',
+                'descargarFormatoProveedores',
+                'showNotification'
+            ];
+            
+            const metodosDisponibles = metodosRequeridos.filter(metodo => 
+                typeof window.adminDashboard[metodo] === 'function'
+            );
+            
+            if (metodosDisponibles.length === metodosRequeridos.length) {
+                estadoDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> 
+                        <strong>Éxito:</strong> Sistema funcionando correctamente
+                        <br><small>Métodos disponibles: ${metodosDisponibles.length}/${metodosRequeridos.length}</small>
+                    </div>
+                `;
+            } else {
+                estadoDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Advertencia:</strong> Algunos métodos no están disponibles
+                        <br><small>Métodos disponibles: ${metodosDisponibles.length}/${metodosRequeridos.length}</small>
+                    </div>
+                `;
+            }
+        }
+        
+        function verificarEstado() {
+            log('Verificando estado del sistema...', 'info');
+            actualizarEstadoSistema();
+            
+            if (window.adminDashboard) {
+                log('✅ Dashboard disponible', 'success');
+                log(`Métodos disponibles:`, 'info');
+                log(`- cargarProductosMasivo: ${typeof window.adminDashboard.cargarProductosMasivo}`, 'info');
+                log(`- cargarProveedoresMasivo: ${typeof window.adminDashboard.cargarProveedoresMasivo}`, 'info');
+                log(`- descargarFormatoProductos: ${typeof window.adminDashboard.descargarFormatoProductos}`, 'info');
+                log(`- descargarFormatoProveedores: ${typeof window.adminDashboard.descargarFormatoProveedores}`, 'info');
+                log(`- showNotification: ${typeof window.adminDashboard.showNotification}`, 'info');
+            } else {
+                log('❌ Dashboard no disponible', 'error');
+            }
+        }
+        
+        function reiniciarSistema() {
+            log('Reiniciando sistema...', 'warning');
+            try {
+                window.adminDashboard = new AdminDashboard();
+                log('✅ Sistema reiniciado correctamente', 'success');
+                actualizarEstadoSistema();
+            } catch (error) {
+                log(`❌ Error al reiniciar: ${error.message}`, 'error');
+            }
+        }
+        
+        function abrirModalProductos() {
+            const modal = new bootstrap.Modal(document.getElementById('cargaMasivaProductosModal'));
+            modal.show();
+            log('Modal de productos abierto', 'info');
+        }
+        
+        function abrirModalProveedores() {
+            const modal = new bootstrap.Modal(document.getElementById('cargaMasivaProveedoresModal'));
+            modal.show();
+            log('Modal de proveedores abierto', 'info');
+        }
+        
+        // Función de verificación del dashboard
+        function verificarDashboard() {
+            if (!window.adminDashboard) {
+                log('❌ Dashboard no inicializado', 'error');
+                return false;
+            }
+            
+            const metodosRequeridos = [
+                'cargarProductosMasivo',
+                'cargarProveedoresMasivo', 
+                'descargarFormatoProductos',
+                'descargarFormatoProveedores',
+                'showNotification'
+            ];
+            
+            for (const metodo of metodosRequeridos) {
+                if (typeof window.adminDashboard[metodo] !== 'function') {
+                    log(`❌ Método ${metodo} no disponible`, 'error');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Funciones globales mejoradas
+        function procesarCargaMasivaProductos() {
+            log('Función global procesarCargaMasivaProductos llamada', 'info');
+            
+            if (!verificarDashboard()) {
+                log('❌ Dashboard no disponible para productos', 'error');
+                alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+                return;
+            }
+            
+            try {
+                window.adminDashboard.cargarProductosMasivo();
+                log('✅ Carga masiva de productos iniciada', 'success');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert('Error al procesar la carga masiva: ' + error.message);
+            }
+        }
+        
+        function procesarCargaMasivaProveedores() {
+            log('Función global procesarCargaMasivaProveedores llamada', 'info');
+            
+            if (!verificarDashboard()) {
+                log('❌ Dashboard no disponible para proveedores', 'error');
+                alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+                return;
+            }
+            
+            try {
+                window.adminDashboard.cargarProveedoresMasivo();
+                log('✅ Carga masiva de proveedores iniciada', 'success');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert('Error al procesar la carga masiva de proveedores: ' + error.message);
+            }
+        }
+        
+        function descargarFormatoProductos() {
+            log('Función global descargarFormatoProductos llamada', 'info');
+            
+            if (!verificarDashboard()) {
+                log('❌ Dashboard no disponible para descargar formato de productos', 'error');
+                alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+                return;
+            }
+            
+            try {
+                window.adminDashboard.descargarFormatoProductos();
+                log('✅ Descarga de formato de productos iniciada', 'success');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert('Error al descargar el formato: ' + error.message);
+            }
+        }
+        
+        function descargarFormatoProveedores() {
+            log('Función global descargarFormatoProveedores llamada', 'info');
+            
+            if (!verificarDashboard()) {
+                log('❌ Dashboard no disponible para descargar formato de proveedores', 'error');
+                alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+                return;
+            }
+            
+            try {
+                window.adminDashboard.descargarFormatoProveedores();
+                log('✅ Descarga de formato de proveedores iniciada', 'success');
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                alert('Error al descargar el formato de proveedores: ' + error.message);
+            }
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM cargado, inicializando dashboard...', 'info');
+            try {
+                window.adminDashboard = new AdminDashboard();
+                log('✅ Dashboard inicializado correctamente', 'success');
+                actualizarEstadoSistema();
+                verificarEstado();
+            } catch (error) {
+                log(`❌ Error al inicializar dashboard: ${error.message}`, 'error');
+                actualizarEstadoSistema();
+            }
+        });
+    </script>
+    
+    <style>
+        .log-entry.success { color: #198754; }
+        .log-entry.error { color: #dc3545; }
+        .log-entry.warning { color: #ffc107; }
+        .log-entry.info { color: #0dcaf0; }
+    </style>
+</body>
+</html>

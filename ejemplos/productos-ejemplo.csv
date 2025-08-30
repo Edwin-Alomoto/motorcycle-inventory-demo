@@ -1,0 +1,12 @@
+sep=;
+codigo;nombre;descripcion;codigoQR;precio;descuentoMinimo;descuentoMaximo;stock;stockMinimo;stockMaximo;estado;proveedor
+PROD001;Aceite de Motor 4T;Aceite sintético para motos 4T 1L;PROD001;15.50;0.00;0.00;50;5;100;Activo;Aceites Pro
+PROD002;Filtro de Aire;Filtro de aire de alta calidad universal;PROD002;8.75;0.00;0.00;30;5;100;Activo;Filtros Max
+PROD003;Pastillas de Freno;Par de pastillas de freno delantero;PROD003;12.00;0.00;0.00;25;5;100;Activo;Frenos Seguros
+PROD004;Cadena de Transmisión;Cadena de transmisión 520 para motos;PROD004;45.00;0.00;0.00;15;5;100;Activo;Transmisiones Rápidas
+PROD005;Bujía NGK;Bujía NGK CR8E para motos;PROD005;5.25;0.00;0.00;100;5;100;Activo;Bujías Elite
+PROD006;Llanta Delantera;Llanta delantera 17 pulgadas universal;PROD006;85.00;0.00;0.00;8;5;100;Activo;Llantas Pro
+PROD007;Aceite de Transmisión;Aceite para transmisión de motos;PROD007;12.50;0.00;0.00;40;5;100;Activo;Aceites Pro
+PROD008;Filtro de Combustible;Filtro de combustible universal;PROD008;6.80;0.00;0.00;35;5;100;Activo;Filtros Max
+PROD009;Espejo Retrovisor;Espejo retrovisor universal para motos;PROD009;18.90;0.00;0.00;20;5;100;Activo;Accesorios Rápidos
+PROD010;Batería de Moto;Batería 12V 7Ah para motos;PROD010;65.00;0.00;0.00;12;5;100;Activo;Baterías Elite

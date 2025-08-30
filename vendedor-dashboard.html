@@ -948,5 +948,21 @@
     <script src="js/auth.js"></script>
     <script src="js/foto-manager.js"></script>
     <script src="js/vendedor-dashboard.js"></script>
+    
+    <script>
+        // Inicializar el dashboard cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Crear instancia del dashboard
+            window.vendedorDashboard = new VendedorDashboard();
+            
+            // Evento para resetear el modal de cliente cuando se cierre
+            const clienteModal = document.getElementById('clienteModal');
+            clienteModal.addEventListener('hidden.bs.modal', () => {
+                if (window.vendedorDashboard) {
+                    window.vendedorDashboard.resetearModalCliente();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

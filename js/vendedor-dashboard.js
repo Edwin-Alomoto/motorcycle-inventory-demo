@@ -620,7 +620,17 @@ class VendedorDashboard {
     }
     
     procesarVentaConCliente(cliente) {
-        const subtotal = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+        // Calcular subtotal sin descuentos
+        const subtotalSinDescuento = this.productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+        
+        // Calcular descuento total
+        const descuentoTotal = this.productosSeleccionados.reduce((sum, p) => {
+            const descuento = p.descuento || 0;
+            return sum + (descuento * p.cantidad);
+        }, 0);
+        
+        // Calcular subtotal con descuentos
+        const subtotal = subtotalSinDescuento - descuentoTotal;
         const iva = subtotal * 0.12;
         const total = subtotal + iva;
         
@@ -629,6 +639,8 @@ class VendedorDashboard {
             numero: this.generarNumeroFactura(),
             cliente,
             productos: [...this.productosSeleccionados],
+            subtotalSinDescuento,
+            descuentoTotal,
             subtotal,
             iva,
             total,
@@ -1044,6 +1056,68 @@ class VendedorDashboard {
                 cedulaInput.readOnly = false; // Habilitar edición de cédula
             }
         }
+    }
+    
+    actualizarCliente() {
+        const cedula = document.getElementById('cedulaCliente').value;
+        const nombre = document.getElementById('nombreCliente').value;
+        const direccion = document.getElementById('direccionCliente').value;
+        const telefono = document.getElementById('telefonoCliente').value;
+        const email = document.getElementById('emailCliente').value;
+        
+        if (!cedula || !nombre || !direccion || !telefono || !email) {
+            this.showNotification('Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        // Verificar que la cédula no esté duplicada (excluyendo el cliente actual)
+        const clientes = this.getClientes();
+        const clienteDuplicado = clientes.find(c => c.cedula === cedula && c.id !== this.clienteEditando.id);
+        if (clienteDuplicado) {
+            this.showNotification('La cédula/RUC ya está registrado por otro cliente', 'danger');
+            return;
+        }
+        
+        // Actualizar el cliente
+        const index = clientes.findIndex(c => c.id === this.clienteEditando.id);
+        if (index === -1) {
+            this.showNotification('Cliente no encontrado', 'error');
+            return;
+        }
+        
+        clientes[index] = {
+            ...this.clienteEditando,
+            cedula,
+            nombre,
+            direccion,
+            telefono,
+            email,
+            fechaActualizacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('clientes', JSON.stringify(clientes));
+        
+        this.showNotification('Cliente actualizado exitosamente', 'success');
+        this.cerrarModal('clienteModal');
+        this.loadClientes();
+        this.loadClientesVenta();
+        this.resetearModalCliente();
+    }
+    
+    resetearModalCliente() {
+        // Limpiar el formulario
+        document.getElementById('clienteForm').reset();
+        
+        // Restaurar el título y botón del modal
+        document.querySelector('#clienteModal .modal-title').textContent = 'Nuevo Cliente';
+        document.querySelector('#clienteModal .btn-primary').textContent = 'Guardar';
+        
+        // Restaurar el onclick del botón para usar guardarCliente
+        const btnGuardar = document.querySelector('#clienteModal .btn-primary');
+        btnGuardar.onclick = () => this.guardarCliente();
+        
+        // Limpiar la variable de edición
+        this.clienteEditando = null;
     }
     
     // Gestión de Reparaciones
@@ -2292,9 +2366,63 @@ class VendedorDashboard {
         this.loadDashboardData();
     }
     
-    // Métodos para editar y eliminar (placeholder)
+    // Métodos para editar y eliminar
     editarCliente(id) {
-        this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        console.log('editarCliente llamado con id:', id);
+        
+        const clientes = this.getClientes();
+        console.log('Clientes encontrados:', clientes);
+        
+        const cliente = clientes.find(c => c.id === id);
+        console.log('Cliente encontrado:', cliente);
+        
+        if (!cliente) {
+            console.error('Cliente no encontrado');
+            this.showNotification('Cliente no encontrado', 'error');
+            return;
+        }
+        
+        // Marcar que estamos editando
+        this.clienteEditando = cliente;
+        
+        // Llenar el modal con los datos del cliente
+        const cedulaInput = document.getElementById('cedulaCliente');
+        const nombreInput = document.getElementById('nombreCliente');
+        const direccionInput = document.getElementById('direccionCliente');
+        const telefonoInput = document.getElementById('telefonoCliente');
+        const emailInput = document.getElementById('emailCliente');
+        
+        if (cedulaInput) cedulaInput.value = cliente.cedula;
+        if (nombreInput) nombreInput.value = cliente.nombre;
+        if (direccionInput) direccionInput.value = cliente.direccion;
+        if (telefonoInput) telefonoInput.value = cliente.telefono;
+        if (emailInput) emailInput.value = cliente.email;
+        
+        console.log('Campos del modal llenados');
+        
+        // Cambiar el título del modal y el texto del botón
+        const modalTitle = document.querySelector('#clienteModal .modal-title');
+        const modalButton = document.querySelector('#clienteModal .btn-primary');
+        
+        if (modalTitle) modalTitle.textContent = 'Editar Cliente';
+        if (modalButton) modalButton.textContent = 'Actualizar';
+        
+        // Cambiar el onclick del botón para usar actualizarCliente
+        if (modalButton) {
+            modalButton.onclick = () => this.actualizarCliente();
+        }
+        
+        console.log('Modal configurado, intentando abrir...');
+        
+        // Abrir el modal
+        const modalElement = document.getElementById('clienteModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            console.log('Modal abierto exitosamente');
+        } else {
+            console.error('Elemento modal no encontrado');
+        }
     }
     
     eliminarCliente(id) {

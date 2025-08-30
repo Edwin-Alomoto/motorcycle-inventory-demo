@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Editar Producto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-edit me-2"></i>Test - Editar Producto</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Esta página te permite probar la funcionalidad de edición de productos.</p>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Instrucciones:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Haz clic en "Cargar Productos de Prueba" para crear productos de ejemplo</li>
+                                <li>Luego haz clic en "Probar Edición" para simular la edición de un producto</li>
+                                <li>Verifica que el modal se abra con la información del producto</li>
+                                <li>Revisa la consola del navegador para ver los logs de depuración</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-success mb-3" onclick="cargarProductosPrueba()">
+                                    <i class="fas fa-plus me-2"></i>Cargar Productos de Prueba
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-primary mb-3" onclick="probarEdicion()">
+                                    <i class="fas fa-edit me-2"></i>Probar Edición
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productosTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div class="modal fade" id="productoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productoForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codigoProducto" class="form-label">Código</label>
+                                    <input type="text" class="form-control" id="codigoProducto" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombreProducto" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="nombreProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionProducto" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcionProducto" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codigoQRProducto" class="form-label">Código QR</label>
+                                    <input type="text" class="form-control" id="codigoQRProducto" placeholder="Ingrese el código QR del producto">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Vista Previa QR</label>
+                                    <div id="qrPreview" class="border rounded p-2 text-center" style="min-height: 120px; background-color: #f8f9fa;">
+                                        <!-- El QR por defecto se generará automáticamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="precioProducto" class="form-label">Precio</label>
+                                    <input type="number" class="form-control" id="precioProducto" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="descuentoMinimoProducto" class="form-label">Descuento Mínimo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMinimoProducto" step="0.1" value="0" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="descuentoMaximoProducto" class="form-label">Descuento Máximo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMaximoProducto" step="0.1" value="0" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockProducto" class="form-label">Stock Actual</label>
+                                    <input type="number" class="form-control" id="stockProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockMinimoProducto" class="form-label">Stock Mínimo</label>
+                                    <input type="number" class="form-control" id="stockMinimoProducto" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="stockMaximoProducto" class="form-label">Stock Máximo</label>
+                                    <input type="number" class="form-control" id="stockMaximoProducto" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="proveedorProducto" class="form-label">Proveedor</label>
+                                    <select class="form-select" id="proveedorProducto" required>
+                                        <option value="">Seleccionar proveedor</option>
+                                        <option value="Proveedor A">Proveedor A</option>
+                                        <option value="Proveedor B">Proveedor B</option>
+                                        <option value="Proveedor C">Proveedor C</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    
+    <script>
+        // Instancia del dashboard para pruebas
+        let testDashboard;
+        
+        // Productos de prueba
+        const productosPrueba = [
+            {
+                id: 'prod-001',
+                codigo: 'MOTO-001',
+                nombre: 'Honda CBR 600RR',
+                descripcion: 'Motocicleta deportiva de alta performance',
+                precio: 15000,
+                stock: 5,
+                stockMinimo: 2,
+                stockMaximo: 20,
+                proveedor: 'Proveedor A',
+                descuentoMinimo: 5,
+                descuentoMaximo: 15,
+                codigoQR: 'HONDA-CBR600RR-2023'
+            },
+            {
+                id: 'prod-002',
+                codigo: 'MOTO-002',
+                nombre: 'Yamaha R1',
+                descripcion: 'Motocicleta superdeportiva',
+                precio: 25000,
+                stock: 3,
+                stockMinimo: 1,
+                stockMaximo: 15,
+                proveedor: 'Proveedor B',
+                descuentoMinimo: 3,
+                descuentoMaximo: 10,
+                codigoQR: 'YAMAHA-R1-2023'
+            },
+            {
+                id: 'prod-003',
+                codigo: 'MOTO-003',
+                nombre: 'Kawasaki Ninja 650',
+                descripcion: 'Motocicleta deportiva de entrada',
+                precio: 12000,
+                stock: 8,
+                stockMinimo: 3,
+                stockMaximo: 25,
+                proveedor: 'Proveedor C',
+                descuentoMinimo: 8,
+                descuentoMaximo: 20,
+                codigoQR: 'KAWASAKI-NINJA650-2023'
+            }
+        ];
+        
+        // Función para cargar productos de prueba
+        function cargarProductosPrueba() {
+            localStorage.setItem('productos', JSON.stringify(productosPrueba));
+            mostrarProductos();
+            console.log('Productos de prueba cargados:', productosPrueba);
+            alert('Productos de prueba cargados exitosamente');
+        }
+        
+        // Función para mostrar productos en la tabla
+        function mostrarProductos() {
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            const tbody = document.getElementById('productosTable');
+            tbody.innerHTML = '';
+            
+            productos.forEach(producto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${producto.codigo}</td>
+                    <td>${producto.nombre}</td>
+                    <td>$${producto.precio}</td>
+                    <td>${producto.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarProducto('${producto.id}')">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Función para probar la edición
+        function probarEdicion() {
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            if (productos.length === 0) {
+                alert('Primero carga productos de prueba');
+                return;
+            }
+            
+            // Usar el primer producto para la prueba
+            const primerProducto = productos[0];
+            console.log('Probando edición del producto:', primerProducto);
+            editarProducto(primerProducto.id);
+        }
+        
+        // Función para editar producto (versión simplificada para pruebas)
+        function editarProducto(id) {
+            console.log('Editando producto con ID:', id);
+            
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            const producto = productos.find(p => p.id === id);
+            
+            if (!producto) {
+                console.error('Producto no encontrado');
+                alert('Producto no encontrado');
+                return;
+            }
+            
+            console.log('Producto encontrado:', producto);
+            
+            // Llenar el modal con los datos del producto
+            const codigoInput = document.getElementById('codigoProducto');
+            const nombreInput = document.getElementById('nombreProducto');
+            const descripcionInput = document.getElementById('descripcionProducto');
+            const codigoQRInput = document.getElementById('codigoQRProducto');
+            const precioInput = document.getElementById('precioProducto');
+            const descuentoMinimoInput = document.getElementById('descuentoMinimoProducto');
+            const descuentoMaximoInput = document.getElementById('descuentoMaximoProducto');
+            const stockInput = document.getElementById('stockProducto');
+            const stockMinimoInput = document.getElementById('stockMinimoProducto');
+            const stockMaximoInput = document.getElementById('stockMaximoProducto');
+            const proveedorInput = document.getElementById('proveedorProducto');
+            
+            // Verificar que todos los elementos existan
+            if (!codigoInput || !nombreInput || !descripcionInput || !codigoQRInput || 
+                !precioInput || !descuentoMinimoInput || !descuentoMaximoInput || 
+                !stockInput || !stockMinimoInput || !stockMaximoInput || !proveedorInput) {
+                console.error('No se encontraron todos los elementos del formulario');
+                alert('Error al cargar el formulario de edición');
+                return;
+            }
+            
+            // Llenar los campos con los datos del producto
+            codigoInput.value = producto.codigo || '';
+            nombreInput.value = producto.nombre || '';
+            descripcionInput.value = producto.descripcion || '';
+            codigoQRInput.value = producto.codigoQR || producto.codigo || '';
+            precioInput.value = producto.precio || '';
+            descuentoMinimoInput.value = producto.descuentoMinimo || producto.descuento || 0;
+            descuentoMaximoInput.value = producto.descuentoMaximo || 0;
+            stockInput.value = producto.stock || '';
+            stockMinimoInput.value = producto.stockMinimo || 5;
+            stockMaximoInput.value = producto.stockMaximo || 100;
+            proveedorInput.value = producto.proveedor || '';
+            
+            // Generar vista previa del QR
+            const codigoParaQR = producto.codigoQR || producto.codigo || 'PROD-' + Date.now();
+            generarVistaPreviaQR(codigoParaQR);
+            
+            // Cambiar el título del modal
+            const modalTitle = document.querySelector('#productoModal .modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = 'Editar Producto';
+            }
+            
+            // Cambiar el botón de guardar
+            const btnGuardar = document.querySelector('#productoModal .btn-primary');
+            if (btnGuardar) {
+                btnGuardar.textContent = 'Actualizar';
+                btnGuardar.onclick = () => actualizarProducto(id);
+            }
+            
+            // Mostrar el modal
+            const modalElement = document.getElementById('productoModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            } else {
+                console.error('Modal de producto no encontrado');
+                alert('Error al abrir el modal de edición');
+            }
+        }
+        
+        // Función para actualizar producto
+        function actualizarProducto(id) {
+            console.log('Actualizando producto con ID:', id);
+            
+            // Obtener valores del formulario
+            const codigo = document.getElementById('codigoProducto').value.trim();
+            const nombre = document.getElementById('nombreProducto').value.trim();
+            const descripcion = document.getElementById('descripcionProducto').value.trim();
+            const codigoQR = document.getElementById('codigoQRProducto').value.trim() || codigo;
+            const precio = parseFloat(document.getElementById('precioProducto').value);
+            const descuentoMinimo = parseFloat(document.getElementById('descuentoMinimoProducto').value) || 0;
+            const descuentoMaximo = parseFloat(document.getElementById('descuentoMaximoProducto').value) || 0;
+            const stock = parseInt(document.getElementById('stockProducto').value);
+            const stockMinimo = parseInt(document.getElementById('stockMinimoProducto').value);
+            const stockMaximo = parseInt(document.getElementById('stockMaximoProducto').value);
+            const proveedor = document.getElementById('proveedorProducto').value.trim();
+            
+            // Validar campos requeridos
+            if (!codigo || !nombre || !precio || !stock || !stockMinimo || !stockMaximo || !proveedor) {
+                alert('Por favor complete todos los campos requeridos');
+                return;
+            }
+            
+            // Actualizar el producto
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            const index = productos.findIndex(p => p.id === id);
+            
+            if (index > -1) {
+                productos[index] = {
+                    ...productos[index],
+                    codigo,
+                    nombre,
+                    descripcion,
+                    codigoQR,
+                    precio,
+                    descuentoMinimo,
+                    descuentoMaximo,
+                    stock,
+                    stockMinimo,
+                    stockMaximo,
+                    proveedor,
+                    fechaActualizacion: new Date().toISOString()
+                };
+                
+                localStorage.setItem('productos', JSON.stringify(productos));
+                console.log('Producto actualizado:', productos[index]);
+                alert('Producto actualizado exitosamente');
+                
+                // Cerrar modal y actualizar tabla
+                const modal = bootstrap.Modal.getInstance(document.getElementById('productoModal'));
+                modal.hide();
+                mostrarProductos();
+                
+                // Restaurar modal
+                resetearModal();
+            } else {
+                alert('Producto no encontrado');
+            }
+        }
+        
+        // Función para generar vista previa del QR
+        function generarVistaPreviaQR(texto) {
+            const qrPreview = document.getElementById('qrPreview');
+            if (!qrPreview) {
+                return;
+            }
+            
+            if (!texto) {
+                texto = 'PROD-' + Date.now();
+            }
+            
+            qrPreview.innerHTML = '';
+            
+            try {
+                if (typeof QRCode === 'undefined') {
+                    qrPreview.innerHTML = '<small class="text-warning">Librería QR no disponible</small>';
+                    return;
+                }
+                
+                QRCode.toDataURL(texto, {
+                    width: 120,
+                    height: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error, url) => {
+                    if (error) {
+                        console.error('Error generando QR:', error);
+                        qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Código QR';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        qrPreview.appendChild(img);
+                    }
+                });
+            } catch (error) {
+                console.error('Error en generarVistaPreviaQR:', error);
+                qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+            }
+        }
+        
+        // Función para resetear modal
+        function resetearModal() {
+            document.getElementById('productoForm').reset();
+            generarVistaPreviaQR('');
+            
+            const modalTitle = document.querySelector('#productoModal .modal-title');
+            if (modalTitle) {
+                modalTitle.textContent = 'Nuevo Producto';
+            }
+            
+            const btnGuardar = document.querySelector('#productoModal .btn-primary');
+            if (btnGuardar) {
+                btnGuardar.textContent = 'Guardar';
+                btnGuardar.onclick = () => guardarProducto();
+            }
+        }
+        
+        // Función para guardar producto (placeholder)
+        function guardarProducto() {
+            alert('Función de guardar producto no implementada en esta prueba');
+        }
+        
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Página de prueba cargada');
+            mostrarProductos();
+        });
+    </script>
+</body>
+</html>

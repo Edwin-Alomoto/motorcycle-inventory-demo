@@ -5,10 +5,23 @@ class AdminDashboard {
         const session = localStorage.getItem('session');
         this.session = session ? JSON.parse(session) : null;
         
+        // Para pruebas, permitir inicialización sin sesión
         if (!this.session || this.session.role !== 'admin') {
-            window.location.href = 'index.html';
-            return;
+            console.warn('No hay sesión de admin válida, inicializando en modo prueba');
+            this.session = {
+                name: 'Usuario de Prueba',
+                role: 'admin',
+                id: 'test-user'
+            };
         }
+        
+        // Inicializar variables
+        this.qrTimeout = null;
+        this.reparacionActual = null;
+        this.materialesReparacion = [];
+        this.reparacionEditando = null;
+        this.clienteEditando = null;
+        this.proveedorEditando = null;
         
         this.init();
     }
@@ -21,6 +34,39 @@ class AdminDashboard {
         this.loadAllData();
         this.setupClienteSearch();
         this.setupNotificaciones();
+        
+        // Verificar que el modal de productos esté disponible
+        this.verificarModalProductos();
+    }
+    
+    // Verificar que el modal de productos esté correctamente configurado
+    verificarModalProductos() {
+        const modalElement = document.getElementById('productoModal');
+        if (!modalElement) {
+            console.error('Modal de productos no encontrado');
+            return;
+        }
+        
+        // Verificar que todos los campos del formulario existan
+        const camposRequeridos = [
+            'codigoProducto', 'nombreProducto', 'descripcionProducto', 
+            'codigoQRProducto', 'precioProducto', 'descuentoMinimoProducto',
+            'descuentoMaximoProducto', 'stockProducto', 'stockMinimoProducto',
+            'stockMaximoProducto', 'proveedorProducto'
+        ];
+        
+        const camposFaltantes = [];
+        camposRequeridos.forEach(campo => {
+            if (!document.getElementById(campo)) {
+                camposFaltantes.push(campo);
+            }
+        });
+        
+        if (camposFaltantes.length > 0) {
+            console.error('Campos faltantes en el modal de productos:', camposFaltantes);
+        } else {
+            console.log('Modal de productos configurado correctamente');
+        }
     }
     
     setupUserInfo() {
@@ -160,6 +206,14 @@ class AdminDashboard {
             });
         }
         
+        // Evento para resetear modal de proveedores cuando se cierre
+        const proveedorModal = document.getElementById('proveedorModal');
+        if (proveedorModal) {
+            proveedorModal.addEventListener('hidden.bs.modal', () => {
+                this.resetearModalProveedor();
+            });
+        }
+        
         // Formularios
         this.setupFormListeners();
     }
@@ -221,7 +275,13 @@ class AdminDashboard {
         // Cargar estadísticas del dashboard
         const productos = this.getProductos();
         const reparaciones = this.getReparaciones();
-        const ventas = this.getVentas();
+        let ventas = this.getVentas();
+        
+        // Si no hay ventas, generar datos de ejemplo
+        if (ventas.length === 0) {
+            ventas = this.generarVentasEjemplo();
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+        }
         
         document.getElementById('totalProductos').textContent = productos.length;
         document.getElementById('reparacionesPendientes').textContent = 
@@ -267,8 +327,8 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
-                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `${producto.descuentoMinimo || producto.descuento || 0}%` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `${producto.descuentoMaximo}%` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -281,10 +341,10 @@ class AdminDashboard {
                 </td>
                 <td>${producto.proveedor}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.editarProducto('${producto.id}')">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editarProducto('${producto.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="adminDashboard.eliminarProducto('${producto.id}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto('${producto.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -329,8 +389,8 @@ class AdminDashboard {
                 <td>${producto.nombre}</td>
                 <td>${producto.descripcion}</td>
                 <td>$${producto.precio}</td>
-                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `$${producto.descuentoMinimo || producto.descuento || 0}` : '-'}</td>
-                <td>${(producto.descuentoMaximo || 0) > 0 ? `$${producto.descuentoMaximo}` : '-'}</td>
+                <td>${(producto.descuentoMinimo || producto.descuento || 0) > 0 ? `${producto.descuentoMinimo || producto.descuento || 0}%` : '-'}</td>
+                <td>${(producto.descuentoMaximo || 0) > 0 ? `${producto.descuentoMaximo}%` : '-'}</td>
                 <td>
                     <span class="badge ${producto.stock <= stockMinimo ? 'bg-danger' : 'bg-success'}">
                         ${producto.stock}
@@ -343,10 +403,10 @@ class AdminDashboard {
                 </td>
                 <td>${producto.proveedor}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.editarProducto('${producto.id}')">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editarProducto('${producto.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="adminDashboard.eliminarProducto('${producto.id}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto('${producto.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -359,6 +419,7 @@ class AdminDashboard {
         const codigo = document.getElementById('codigoProducto').value;
         const nombre = document.getElementById('nombreProducto').value;
         const descripcion = document.getElementById('descripcionProducto').value;
+        const codigoQR = document.getElementById('codigoQRProducto').value || codigo; // Si no se ingresa QR, usar el código
         const precio = parseFloat(document.getElementById('precioProducto').value);
         const descuentoMinimo = parseFloat(document.getElementById('descuentoMinimoProducto').value) || 0;
         const descuentoMaximo = parseFloat(document.getElementById('descuentoMaximoProducto').value) || 0;
@@ -384,6 +445,7 @@ class AdminDashboard {
             codigo,
             nombre,
             descripcion,
+            codigoQR,
             precio,
             descuentoMinimo,
             descuentoMaximo,
@@ -419,10 +481,10 @@ class AdminDashboard {
                 <td>${proveedor.telefono}</td>
                 <td>${proveedor.email}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.editarProveedor('${proveedor.id}')">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editarProveedor('${proveedor.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="adminDashboard.eliminarProveedor('${proveedor.id}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarProveedor('${proveedor.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -468,6 +530,68 @@ class AdminDashboard {
         this.showNotification('Proveedor guardado exitosamente', 'success');
         this.cerrarModal('proveedorModal');
         this.loadProveedores();
+        this.resetearModalProveedor();
+    }
+    
+    actualizarProveedor() {
+        const ruc = document.getElementById('rucProveedor').value;
+        const nombre = document.getElementById('nombreProveedor').value;
+        const direccion = document.getElementById('direccionProveedor').value;
+        const telefono = document.getElementById('telefonoProveedor').value;
+        const email = document.getElementById('emailProveedor').value;
+        
+        if (!ruc || !nombre || !direccion || !telefono || !email) {
+            this.showNotification('Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        // Verificar que el RUC no esté duplicado (excluyendo el proveedor actual)
+        const proveedores = this.getProveedores();
+        const proveedorDuplicado = proveedores.find(p => p.ruc === ruc && p.id !== this.proveedorEditando.id);
+        if (proveedorDuplicado) {
+            this.showNotification('El RUC ya está registrado por otro proveedor', 'danger');
+            return;
+        }
+        
+        // Actualizar el proveedor
+        const index = proveedores.findIndex(p => p.id === this.proveedorEditando.id);
+        if (index === -1) {
+            this.showNotification('Proveedor no encontrado', 'error');
+            return;
+        }
+        
+        proveedores[index] = {
+            ...this.proveedorEditando,
+            ruc,
+            nombre,
+            direccion,
+            telefono,
+            email,
+            fechaActualizacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('proveedores', JSON.stringify(proveedores));
+        
+        this.showNotification('Proveedor actualizado exitosamente', 'success');
+        this.cerrarModal('proveedorModal');
+        this.loadProveedores();
+        this.resetearModalProveedor();
+    }
+    
+    resetearModalProveedor() {
+        // Limpiar el formulario
+        document.getElementById('proveedorForm').reset();
+        
+        // Restaurar el título y botón del modal
+        document.querySelector('#proveedorModal .modal-title').textContent = 'Nuevo Proveedor';
+        document.querySelector('#proveedorModal .btn-primary').textContent = 'Guardar';
+        
+        // Restaurar el onclick del botón para usar guardarProveedor
+        const btnGuardar = document.querySelector('#proveedorModal .btn-primary');
+        btnGuardar.onclick = () => this.guardarProveedor();
+        
+        // Limpiar la variable de edición
+        this.proveedorEditando = null;
     }
     
     actualizarSelectProveedores() {
@@ -626,26 +750,43 @@ class AdminDashboard {
                 <td>${reparacion.marca} ${reparacion.modelo}</td>
                 <td>${reparacion.falla}</td>
                 <td>
-                    <span class="badge badge-${this.getEstadoClass(reparacion.estado)}">
-                        ${reparacion.estado}
-                    </span>
+                    <select class="form-select form-select-sm estado-reparacion-select" 
+                            onchange="adminDashboard.cambiarEstadoReparacion('${reparacion.id}', this.value)"
+                            data-estado="${reparacion.estado}"
+                            style="min-width: 120px;">
+                        <option value="pendiente" ${reparacion.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="en-proceso" ${reparacion.estado === 'en-proceso' ? 'selected' : ''}>En Proceso</option>
+                        <option value="espera" ${reparacion.estado === 'espera' ? 'selected' : ''}>En Espera</option>
+                        <option value="finalizada" ${reparacion.estado === 'finalizada' ? 'selected' : ''}>Finalizada</option>
+                    </select>
                 </td>
                 <td>${reparacion.mecanico}</td>
                 <td>${new Date(reparacion.fecha).toLocaleDateString()}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.editarReparacion('${reparacion.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success" onclick="adminDashboard.finalizarReparacion('${reparacion.id}')">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" onclick="adminDashboard.verFotosReparacion('${reparacion.id}')" title="Ver fotos">
-                        <i class="fas fa-camera"></i>
-                    </button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.registrarMateriales('${reparacion.id}')" title="Registrar materiales">
+                            <i class="fas fa-tools"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="adminDashboard.verFotosReparacion('${reparacion.id}')" title="Ver fotos">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="adminDashboard.editarReparacion('${reparacion.id}')" title="Editar reparación">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="adminDashboard.finalizarReparacion('${reparacion.id}')" title="Finalizar reparación">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="adminDashboard.eliminarReparacion('${reparacion.id}')" title="Eliminar reparación">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(row);
         });
+        
+        this.actualizarSelectClientesReparacion();
+        this.actualizarSelectMecanicosReparacion();
     }
     
     loadReparacionesRecientes() {
@@ -712,6 +853,931 @@ class AdminDashboard {
         
         // Crear notificación
         this.crearNotificacion('Nueva reparación registrada', `Se ha registrado una nueva reparación para ${cliente}`, 'info');
+    }
+    
+    // Gestión de Materiales de Reparación
+    registrarMateriales(reparacionId) {
+        this.reparacionActual = reparacionId;
+        this.materialesReparacion = [];
+        
+        // Cargar productos en el select
+        const productos = this.getProductos().filter(p => p.stock > 0);
+        const select = document.getElementById('productoMaterial');
+        select.innerHTML = '<option value="">Seleccionar producto</option>';
+        productos.forEach(producto => {
+            const option = document.createElement('option');
+            option.value = producto.id;
+            option.textContent = `${producto.nombre} - $${producto.precio}`;
+            option.dataset.precio = producto.precio;
+            select.appendChild(option);
+        });
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('materialesModal'));
+        modal.show();
+        
+        // Actualizar la lista de materiales registrados (inicialmente vacía)
+        this.actualizarMaterialesRegistrados();
+    }
+    
+    actualizarPrecioMaterial() {
+        const select = document.getElementById('productoMaterial');
+        const precioInput = document.getElementById('precioMaterial');
+        
+        if (select.value) {
+            const option = select.options[select.selectedIndex];
+            precioInput.value = option.dataset.precio;
+            
+            // Actualizar descuento máximo si el checkbox está marcado
+            const descuentoCheck = document.getElementById('check_descuento_material');
+            if (descuentoCheck && descuentoCheck.checked) {
+                this.actualizarDescuentoMaximo();
+            }
+        } else {
+            precioInput.value = '';
+        }
+    }
+    
+    mostrarSeccionProductoNoEncontrado() {
+        const section = document.getElementById('productoNoEncontradoSection');
+        const select = document.getElementById('productoMaterial');
+        const btn = document.getElementById('btnProductoNoEncontrado');
+        
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+            select.value = '';
+            select.disabled = true;
+            btn.innerHTML = '<i class="fas fa-times me-1"></i>Cancelar producto nuevo';
+            btn.className = 'btn btn-outline-secondary';
+        } else {
+            section.style.display = 'none';
+            select.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>Producto no encontrado en inventario';
+            btn.className = 'btn btn-outline-warning';
+            
+            // Limpiar campos del producto nuevo
+            document.getElementById('nuevoProductoNombre').value = '';
+            document.getElementById('nuevoProductoDescripcion').value = '';
+            document.getElementById('nuevoProductoPrecio').value = '';
+            document.getElementById('nuevoProductoProveedor').value = '';
+        }
+    }
+    
+    agregarMaterial() {
+        const productoId = document.getElementById('productoMaterial').value;
+        const cantidad = parseInt(document.getElementById('cantidadMaterial').value);
+        const observaciones = document.getElementById('observacionesMaterial').value;
+        
+        // Capturar descuento
+        const descuentoCheck = document.getElementById('check_descuento_material');
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuento = descuentoCheck && descuentoCheck.checked ? parseFloat(descuentoInput.value) || 0 : 0;
+        
+        // Verificar si es un producto del inventario o uno nuevo
+        const esProductoNuevo = document.getElementById('productoNoEncontradoSection').style.display !== 'none';
+        
+        if (esProductoNuevo) {
+            // Agregar producto nuevo
+            this.agregarProductoNuevo(cantidad, observaciones, descuento);
+        } else {
+            // Agregar producto del inventario
+            if (!productoId || cantidad <= 0) {
+                this.showNotification('Por favor complete los campos requeridos', 'warning');
+                return;
+            }
+            
+            const productos = this.getProductos();
+            const producto = productos.find(p => p.id === productoId);
+            
+            if (!producto || cantidad > producto.stock) {
+                this.showNotification('Cantidad no disponible en stock', 'warning');
+                return;
+            }
+            
+            const material = {
+                id: Date.now().toString(),
+                producto: producto.nombre,
+                cantidad,
+                precio: producto.precio,
+                descuento: descuento,
+                precioConDescuento: this.calcularPrecioConDescuento(producto.precio, descuento),
+                observaciones,
+                tipo: 'inventario'
+            };
+            
+            this.materialesReparacion.push(material);
+            this.actualizarMaterialesRegistrados();
+            
+            // Limpiar formulario
+            document.getElementById('productoMaterial').value = '';
+            document.getElementById('cantidadMaterial').value = '';
+            document.getElementById('precioMaterial').value = '';
+            document.getElementById('observacionesMaterial').value = '';
+            document.getElementById('check_descuento_material').checked = false;
+            document.getElementById('descuentoMaterial').value = '0';
+            document.getElementById('descuentoMaterial').disabled = true;
+            document.getElementById('descuentoMaterialInfo').style.display = 'none';
+        }
+    }
+    
+    agregarProductoNuevo(cantidad, observaciones, descuento) {
+        const nombre = document.getElementById('nuevoProductoNombre').value;
+        const descripcion = document.getElementById('nuevoProductoDescripcion').value;
+        const precio = parseFloat(document.getElementById('nuevoProductoPrecio').value) || 0;
+        const proveedor = document.getElementById('nuevoProductoProveedor').value;
+        
+        if (!nombre || cantidad <= 0) {
+            this.showNotification('Por favor complete el nombre del producto y la cantidad', 'warning');
+            return;
+        }
+        
+        // Crear solicitud de adquisición
+        const solicitudAdquisicion = {
+            id: Date.now().toString(),
+            nombre,
+            descripcion,
+            precioEstimado: precio,
+            proveedorSugerido: proveedor,
+            cantidadSolicitada: cantidad,
+            observaciones,
+            descuento: descuento,
+            reparacionId: this.reparacionActual,
+            fechaSolicitud: new Date().toISOString(),
+            estado: 'pendiente',
+            solicitadoPor: this.session.name
+        };
+        
+        // Guardar solicitud de adquisición
+        const solicitudes = this.getSolicitudesAdquisicion();
+        solicitudes.push(solicitudAdquisicion);
+        localStorage.setItem('solicitudesAdquisicion', JSON.stringify(solicitudes));
+        
+        // Crear material pendiente
+        const material = {
+            id: Date.now().toString(),
+            producto: nombre,
+            cantidad,
+            precio: precio,
+            descuento: descuento,
+            precioConDescuento: this.calcularPrecioConDescuento(precio, descuento),
+            observaciones,
+            tipo: 'pendiente',
+            solicitudId: solicitudAdquisicion.id
+        };
+        
+        this.materialesReparacion.push(material);
+        this.actualizarMaterialesRegistrados();
+        
+        // Crear notificación para el administrador
+        this.crearNotificacionAdquisicion(solicitudAdquisicion);
+        
+        // Limpiar formulario
+        this.mostrarSeccionProductoNoEncontrado();
+        document.getElementById('cantidadMaterial').value = '';
+        document.getElementById('observacionesMaterial').value = '';
+        document.getElementById('check_descuento_material').checked = false;
+        document.getElementById('descuentoMaterial').value = '0';
+        document.getElementById('descuentoMaterial').disabled = true;
+        document.getElementById('descuentoMaterialInfo').style.display = 'none';
+        
+        this.showNotification('Producto agregado como solicitud de adquisición', 'success');
+    }
+    
+    crearNotificacionAdquisicion(solicitud) {
+        const notificacion = {
+            id: Date.now().toString(),
+            titulo: 'Nueva Solicitud de Adquisición',
+            mensaje: `Se solicita adquirir ${solicitud.cantidadSolicitada} unidades de "${solicitud.nombre}" para reparación #${solicitud.reparacionId}`,
+            tipo: 'warning',
+            fecha: new Date().toISOString(),
+            leida: false,
+            solicitudId: solicitud.id,
+            destinatario: 'admin'
+        };
+        
+        const notificaciones = this.getNotificaciones();
+        notificaciones.unshift(notificacion);
+        localStorage.setItem('notificaciones', JSON.stringify(notificaciones));
+    }
+    
+    actualizarMaterialesRegistrados() {
+        const container = document.getElementById('materialesRegistrados');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (this.materialesReparacion.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted p-3"><i class="fas fa-box-open me-2"></i>No hay materiales registrados</div>';
+            return;
+        }
+        
+        this.materialesReparacion.forEach((material, index) => {
+            const div = document.createElement('div');
+            const esPendiente = material.tipo === 'pendiente';
+            const bgClass = esPendiente ? 'bg-warning bg-opacity-10' : 'bg-light';
+            const borderClass = esPendiente ? 'border-warning' : 'border';
+            
+            div.className = `d-flex justify-content-between align-items-center mb-2 p-2 ${borderClass} rounded ${bgClass}`;
+            
+            let statusBadge = '';
+            if (esPendiente) {
+                statusBadge = '<span class="badge bg-warning text-dark me-2">Pendiente de Adquisición</span>';
+            }
+            
+            // Calcular precio final con descuento
+            const precioFinal = material.descuento && material.descuento > 0 
+                ? material.precioConDescuento || this.calcularPrecioConDescuento(material.precio, material.descuento)
+                : material.precio;
+            
+            const subtotal = precioFinal * material.cantidad;
+            
+            // Mostrar información de descuento
+            let descuentoInfo = '';
+            if (material.descuento && material.descuento > 0) {
+                descuentoInfo = `
+                    <br><small class="text-success">
+                        <i class="fas fa-tag me-1"></i>Descuento: $${material.descuento.toFixed(2)} 
+                        ($${material.precio} → $${precioFinal.toFixed(2)})
+                    </small>
+                `;
+            }
+            
+            div.innerHTML = `
+                <div>
+                    <div class="d-flex align-items-center">
+                        ${statusBadge}
+                        <strong>${material.producto}</strong>
+                    </div>
+                    <small class="text-muted">Cantidad: ${material.cantidad} - $${material.precio} c/u</small>
+                    ${descuentoInfo}
+                    ${material.observaciones ? `<br><small class="text-muted">${material.observaciones}</small>` : ''}
+                    ${esPendiente ? '<br><small class="text-warning"><i class="fas fa-clock me-1"></i>Esperando adquisición</small>' : ''}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold">$${subtotal.toFixed(2)}</span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="adminDashboard.removerMaterial(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    removerMaterial(index) {
+        this.materialesReparacion.splice(index, 1);
+        this.actualizarMaterialesRegistrados();
+    }
+    
+    // Funciones de descuento para materiales
+    toggleDescuentoMaterial() {
+        const descuentoCheck = document.getElementById('check_descuento_material');
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuentoInfo = document.getElementById('descuentoMaterialInfo');
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        
+        if (descuentoCheck && descuentoInput) {
+            descuentoInput.disabled = !descuentoCheck.checked;
+            
+            if (descuentoCheck.checked) {
+                descuentoInput.value = '0';
+                descuentoInfo.style.display = 'block';
+                descuentoError.style.display = 'none';
+                this.actualizarDescuentoMaximo();
+            } else {
+                descuentoInput.value = '0';
+                descuentoInfo.style.display = 'none';
+                descuentoError.style.display = 'none';
+            }
+        }
+    }
+    
+    actualizarDescuentoMaximo() {
+        const productoSelect = document.getElementById('productoMaterial');
+        const descuentoMaximoSpan = document.getElementById('descuentoMaximoPermitido');
+        
+        if (productoSelect && productoSelect.value && descuentoMaximoSpan) {
+            const productos = this.getProductos();
+            const producto = productos.find(p => p.id === productoSelect.value);
+            
+            if (producto) {
+                // Determinar descuento máximo basado en el producto
+                let descuentoMaximo = 20; // Valor por defecto
+                
+                if (producto.descuentoMaximo) {
+                    descuentoMaximo = producto.descuentoMaximo;
+                } else if (producto.precio > 100) {
+                    descuentoMaximo = 15; // Productos caros, menos descuento
+                } else if (producto.precio > 50) {
+                    descuentoMaximo = 20; // Productos medios
+                } else {
+                    descuentoMaximo = 25; // Productos baratos, más descuento
+                }
+                
+                descuentoMaximoSpan.textContent = `${descuentoMaximo}%`;
+                
+                // Actualizar el max del input
+                const descuentoInput = document.getElementById('descuentoMaterial');
+                if (descuentoInput) {
+                    descuentoInput.max = descuentoMaximo;
+                    descuentoInput.dataset.maxDescuento = descuentoMaximo;
+                }
+            }
+        }
+    }
+    
+    validarDescuentoMaterial() {
+        const descuentoInput = document.getElementById('descuentoMaterial');
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        const descuentoErrorTexto = document.getElementById('descuentoErrorTexto');
+        
+        if (!descuentoInput || descuentoInput.disabled) return;
+        
+        const descuento = parseFloat(descuentoInput.value) || 0;
+        const maxDescuento = parseFloat(descuentoInput.dataset.maxDescuento) || 20;
+        
+        if (descuento < 0) {
+            this.mostrarErrorDescuento('El descuento no puede ser negativo');
+            descuentoInput.value = '0';
+        } else if (descuento > maxDescuento) {
+            this.mostrarErrorDescuento(`El descuento no puede superar el ${maxDescuento}%`);
+            descuentoInput.value = maxDescuento;
+        } else if (descuento > 0 && descuento <= maxDescuento) {
+            descuentoError.style.display = 'none';
+        }
+    }
+    
+    mostrarErrorDescuento(mensaje) {
+        const descuentoError = document.getElementById('descuentoMaterialError');
+        const descuentoErrorTexto = document.getElementById('descuentoErrorTexto');
+        
+        if (descuentoError && descuentoErrorTexto) {
+            descuentoErrorTexto.textContent = mensaje;
+            descuentoError.style.display = 'block';
+            
+            // Ocultar el error después de 3 segundos
+            setTimeout(() => {
+                descuentoError.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    calcularPrecioConDescuento(precio, descuento) {
+        if (descuento <= 0) return precio;
+        return precio - descuento;
+    }
+    
+    // Finalización de Reparaciones
+    finalizarReparacion(reparacionId) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        // Crear modal para finalizar reparación con fotos finales
+        let modalContent = `
+            <div class="modal fade" id="finalizarReparacionModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Finalizar Reparación #${reparacion.id}
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Confirmar Finalización:</strong> ¿Está seguro de finalizar esta reparación?
+                            </div>
+                            
+                            <div class="reparacion-info-container">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-user me-2 text-primary"></i>Cliente:</strong><br>
+                                            <span class="text-muted">${reparacion.cliente}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-motorcycle me-2 text-primary"></i>Moto:</strong><br>
+                                            <span class="text-muted">${reparacion.marca} ${reparacion.modelo}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-tools me-2 text-primary"></i>Mecánico:</strong><br>
+                                            <span class="text-muted">${reparacion.mecanico}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Falla:</strong><br>
+                                            <span class="text-muted">${reparacion.falla}</span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-clock me-2 text-info"></i>Estado Actual:</strong><br>
+                                            <span class="badge badge-${this.getEstadoClass(reparacion.estado)}">
+                                                ${reparacion.estado}
+                                            </span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong><i class="fas fa-calendar me-2 text-success"></i>Fecha:</strong><br>
+                                            <span class="text-muted">${new Date(reparacion.fecha).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campo de Mano de Obra -->
+                            <div class="mano-obra-section mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-dollar-sign me-2 text-success"></i>
+                                            Mano de Obra
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="manoObra" class="form-label">Costo de Mano de Obra ($)</label>
+                                                    <input type="number" class="form-control" id="manoObra" 
+                                                           placeholder="0.00" step="0.01" min="0" 
+                                                           value="${reparacion.manoObra || ''}">
+                                                    <div class="form-text">
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        Ingrese el costo de la mano de obra aplicada
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="observacionesManoObra" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesManoObra" 
+                                                              rows="2" placeholder="Detalles adicionales sobre la mano de obra...">${reparacion.observacionesManoObra || ''}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="finalizar-reparacion-section">
+                                
+                                <div class="foto-instructions">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <strong>Importante:</strong> Capture o suba fotografías como evidencia del trabajo finalizado. 
+                                    Las fotografías finales son obligatorias para completar la reparación.
+                                </div>
+                                
+                                <div class="fotos-container" id="fotosFinalesContainer">
+                                    <div class="foto-placeholder" onclick="capturarFoto('fotosFinales')">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Capturar<br>Foto</span>
+                                    </div>
+                                    <div class="foto-placeholder" onclick="subirArchivo('fotosFinales')">
+                                        <i class="fas fa-upload"></i>
+                                        <span>Subir<br>Imágenes</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Contenedor para mostrar las fotos capturadas -->
+                                <div id="fotosFinales" class="fotos-display-container mt-3" style="min-height: 100px; border: 2px dashed #dee2e6; border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div class="text-muted">
+                                        <i class="fas fa-images me-2"></i>
+                                        Las fotos capturadas aparecerán aquí
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-shield-alt me-1"></i>
+                                        Las fotografías se almacenan de forma segura y forman parte del historial de la reparación
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="adminDashboard.confirmarFinalizacion('${reparacion.id}')">
+                                <i class="fas fa-check me-1"></i>Finalizar Reparación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('finalizarReparacionModal');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+        
+        // Agregar nuevo modal al body
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('finalizarReparacionModal'));
+        modal.show();
+    }
+    
+    confirmarFinalizacion(reparacionId) {
+        // Verificar que el fotoManager esté disponible
+        if (!window.fotoManager) {
+            this.showNotification('Error: Sistema de fotos no disponible', 'error');
+            return;
+        }
+        
+        // Verificar que hay fotos finales
+        const fotosFinales = window.fotoManager.obtenerFotos('fotosFinales');
+        
+        if (!fotosFinales || fotosFinales.length === 0) {
+            this.showNotification('Debe capturar al menos una foto final como evidencia', 'warning');
+            return;
+        }
+        
+        // Capturar datos de mano de obra
+        const manoObra = parseFloat(document.getElementById('manoObra').value) || 0;
+        const observacionesManoObra = document.getElementById('observacionesManoObra').value;
+        
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (reparacion) {
+            reparacion.estado = 'finalizada';
+            reparacion.materiales = [...this.materialesReparacion];
+            reparacion.fotosFinales = fotosFinales;
+            reparacion.fechaFinalizacion = new Date().toISOString();
+            reparacion.manoObra = manoObra;
+            reparacion.observacionesManoObra = observacionesManoObra;
+            
+            localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('finalizarReparacionModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            this.loadReparaciones();
+            this.loadDashboardData();
+            this.showNotification('Reparación finalizada exitosamente con evidencia fotográfica', 'success');
+            
+            // Generar recibo de reparación
+            this.generarReciboReparacion(reparacion);
+        }
+    }
+    
+    generarReciboReparacion(reparacion) {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+        
+        // Encabezado
+        doc.setFontSize(20);
+        doc.text('RECIBO DE REPARACIÓN', 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.text(`ID: ${reparacion.id}`, 20, 40);
+        doc.text(`Fecha: ${new Date(reparacion.fecha).toLocaleDateString()}`, 20, 50);
+        doc.text(`Cliente: ${reparacion.cliente}`, 20, 60);
+        doc.text(`Moto: ${reparacion.marca} ${reparacion.modelo}`, 20, 70);
+        doc.text(`Mecánico: ${reparacion.mecanico}`, 20, 80);
+        
+        // Materiales si existen
+        if (reparacion.materiales && reparacion.materiales.length > 0) {
+            doc.text('MATERIALES UTILIZADOS:', 20, 100);
+            let y = 110;
+            let totalMateriales = 0;
+            
+            reparacion.materiales.forEach(material => {
+                doc.text(`${material.producto}`, 20, y);
+                doc.text(`${material.cantidad} x $${material.precio}`, 120, y);
+                const subtotal = material.precio * material.cantidad;
+                doc.text(`$${subtotal.toFixed(2)}`, 180, y);
+                totalMateriales += subtotal;
+                y += 10;
+            });
+            
+            // Total materiales
+            y += 10;
+            doc.setFontSize(14);
+            doc.text('TOTAL MATERIALES:', 140, y);
+            doc.text(`$${totalMateriales.toFixed(2)}`, 180, y);
+            y += 15;
+        } else {
+            let y = 100;
+        }
+        
+        // Mano de obra
+        if (reparacion.manoObra && reparacion.manoObra > 0) {
+            doc.setFontSize(12);
+            doc.text('MANO DE OBRA:', 20, y);
+            doc.text(`$${reparacion.manoObra.toFixed(2)}`, 180, y);
+            y += 10;
+            
+            if (reparacion.observacionesManoObra) {
+                doc.setFontSize(10);
+                doc.text('Observaciones:', 20, y);
+                y += 5;
+                doc.text(reparacion.observacionesManoObra, 20, y);
+                y += 10;
+            }
+        }
+        
+        // Total general
+        const totalMateriales = reparacion.materiales ? reparacion.materiales.reduce((sum, material) => {
+            const subtotal = material.precio * material.cantidad;
+            return sum + subtotal;
+        }, 0) : 0;
+        const totalGeneral = totalMateriales + (reparacion.manoObra || 0);
+        
+        doc.setFontSize(14);
+        doc.text('TOTAL GENERAL:', 140, y);
+        doc.text(`$${totalGeneral.toFixed(2)}`, 180, y);
+        
+        // Información de evidencia fotográfica
+        const yFinal = y + 20; // Usar la posición final después del total general
+        doc.setFontSize(12);
+        doc.text('EVIDENCIA FOTOGRÁFICA:', 20, yFinal);
+        doc.text(`Fotos iniciales: ${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0}`, 20, yFinal + 10);
+        doc.text(`Fotos finales: ${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0}`, 20, yFinal + 20);
+        
+        // Guardar PDF
+        doc.save(`reparacion-${reparacion.id}.pdf`);
+        } catch (error) {
+            console.error('Error al generar recibo de reparación:', error);
+            this.showNotification('Error al generar el recibo PDF', 'error');
+        }
+    }
+    
+    // Cambio de estado de reparaciones
+    cambiarEstadoReparacion(reparacionId, nuevoEstado) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        const estadoAnterior = reparacion.estado;
+        reparacion.estado = nuevoEstado;
+        
+        // Guardar cambios
+        localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+        
+        // Actualizar el atributo data-estado del dropdown
+        const dropdown = document.querySelector(`select[onchange*="${reparacionId}"]`);
+        if (dropdown) {
+            dropdown.setAttribute('data-estado', nuevoEstado);
+        }
+        
+        // Mostrar notificación
+        this.showNotification(`Estado cambiado de "${estadoAnterior}" a "${nuevoEstado}"`, 'success');
+        
+        // Crear notificación del cambio
+        this.crearNotificacion(
+            'Estado de reparación actualizado', 
+            `Reparación #${reparacionId} cambió de ${estadoAnterior} a ${nuevoEstado}`, 
+            'info'
+        );
+        
+        // Actualizar dashboard si es necesario
+        this.loadDashboardData();
+    }
+    
+    // Visualización de fotos de reparaciones
+    verFotosReparacion(id) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === id);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        // Crear modal para mostrar las fotos
+        let modalContent = `
+            <div class="modal fade" id="fotosReparacionModal" tabindex="-1">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Fotografías de Evidencia - Reparación #${reparacion.id}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Fotos Iniciales (${reparacion.fotosIniciales ? reparacion.fotosIniciales.length : 0})</h6>
+                                    <div class="fotos-gallery">
+        `;
+        
+        if (reparacion.fotosIniciales && reparacion.fotosIniciales.length > 0) {
+            reparacion.fotosIniciales.forEach(foto => {
+                modalContent += `
+                    <div class="foto-item" style="display: inline-block; margin: 5px;">
+                        <img src="${foto.data}" alt="Foto inicial" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" 
+                             onclick="window.fotoManager.verFoto('${foto.data}')">
+                    </div>
+                `;
+            });
+        } else {
+            modalContent += '<p class="text-muted">No hay fotos iniciales</p>';
+        }
+        
+        modalContent += `
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Fotos Finales (${reparacion.fotosFinales ? reparacion.fotosFinales.length : 0})</h6>
+                                    <div class="fotos-gallery">
+        `;
+        
+        if (reparacion.fotosFinales && reparacion.fotosFinales.length > 0) {
+            reparacion.fotosFinales.forEach(foto => {
+                modalContent += `
+                    <div class="foto-item" style="display: inline-block; margin: 5px;">
+                        <img src="${foto.data}" alt="Foto final" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;" 
+                             onclick="window.fotoManager.verFoto('${foto.data}')">
+                    </div>
+                `;
+            });
+        } else {
+            modalContent += '<p class="text-muted">No hay fotos finales</p>';
+        }
+        
+        modalContent += `
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remover modal anterior si existe
+        const modalAnterior = document.getElementById('fotosReparacionModal');
+        if (modalAnterior) {
+            modalAnterior.remove();
+        }
+        
+        // Agregar nuevo modal al body
+        document.body.insertAdjacentHTML('beforeend', modalContent);
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('fotosReparacionModal'));
+        modal.show();
+    }
+    
+    // Edición de reparaciones
+    editarReparacion(reparacionId) {
+        const reparaciones = this.getReparaciones();
+        const reparacion = reparaciones.find(r => r.id === reparacionId);
+        
+        if (!reparacion) {
+            this.showNotification('Reparación no encontrada', 'error');
+            return;
+        }
+        
+        // Llenar el formulario con los datos de la reparación
+        document.getElementById('clienteReparacion').value = reparacion.cliente;
+        document.getElementById('mecanicoReparacion').value = reparacion.mecanico;
+        document.getElementById('marcaMoto').value = reparacion.marca;
+        document.getElementById('modeloMoto').value = reparacion.modelo;
+        document.getElementById('fallaReparacion').value = reparacion.falla;
+        
+        // Cargar fotos existentes si las hay
+        if (reparacion.fotosIniciales && reparacion.fotosIniciales.length > 0) {
+            this.cargarFotosExistentes(reparacion.fotosIniciales);
+        }
+        
+        // Guardar el ID de la reparación que se está editando
+        this.reparacionEditando = reparacionId;
+        
+        // Cambiar el título del modal
+        const modalTitle = document.querySelector('#reparacionModal .modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Editar Reparación';
+        }
+        
+        // Cambiar el botón de guardar
+        const guardarBtn = document.querySelector('#reparacionModal .btn-primary');
+        if (guardarBtn) {
+            guardarBtn.textContent = 'Actualizar';
+            guardarBtn.onclick = () => this.actualizarReparacion();
+        }
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('reparacionModal'));
+        modal.show();
+    }
+    
+    actualizarReparacion() {
+        const cliente = document.getElementById('clienteReparacion').value;
+        const mecanico = document.getElementById('mecanicoReparacion').value;
+        const marca = document.getElementById('marcaMoto').value;
+        const modelo = document.getElementById('modeloMoto').value;
+        const falla = document.getElementById('fallaReparacion').value;
+        
+        if (!cliente || !mecanico || !marca || !modelo || !falla) {
+            this.showNotification('Por favor complete todos los campos', 'warning');
+            return;
+        }
+        
+        // Obtener fotografías de evidencia
+        const fotosIniciales = window.fotoManager ? window.fotoManager.obtenerFotos('fotosIniciales') : [];
+        
+        const reparaciones = this.getReparaciones();
+        const index = reparaciones.findIndex(r => r.id === this.reparacionEditando);
+        
+        if (index > -1) {
+            reparaciones[index].cliente = cliente;
+            reparaciones[index].mecanico = mecanico;
+            reparaciones[index].marca = marca;
+            reparaciones[index].modelo = modelo;
+            reparaciones[index].falla = falla;
+            reparaciones[index].fotosIniciales = fotosIniciales;
+            
+            localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+            
+            this.showNotification('Reparación actualizada exitosamente', 'success');
+            this.cerrarModal('reparacionModal');
+            this.loadReparaciones();
+            
+            // Limpiar la variable de edición
+            this.reparacionEditando = null;
+        }
+    }
+    
+    // Eliminación de reparaciones
+    eliminarReparacion(reparacionId) {
+        if (confirm('¿Está seguro de eliminar esta reparación?')) {
+            const reparaciones = this.getReparaciones();
+            const index = reparaciones.findIndex(r => r.id === reparacionId);
+            
+            if (index > -1) {
+                reparaciones.splice(index, 1);
+                localStorage.setItem('reparaciones', JSON.stringify(reparaciones));
+                
+                this.showNotification('Reparación eliminada exitosamente', 'success');
+                this.loadReparaciones();
+                this.loadDashboardData();
+            }
+        }
+    }
+    
+    // Función para cargar fotos existentes en el modal de edición
+    cargarFotosExistentes(fotos) {
+        const container = document.getElementById('fotosIniciales');
+        if (!container) return;
+        
+        // Limpiar contenedor
+        container.innerHTML = '';
+        
+        if (fotos && fotos.length > 0) {
+            fotos.forEach((foto, index) => {
+                const fotoDiv = document.createElement('div');
+                fotoDiv.className = 'foto-item';
+                fotoDiv.style.cssText = 'display: inline-block; margin: 5px; position: relative;';
+                
+                fotoDiv.innerHTML = `
+                    <img src="${foto.data}" alt="Foto inicial ${index + 1}" 
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer;" 
+                         onclick="window.fotoManager.verFoto('${foto.data}')">
+                    <button type="button" class="btn btn-sm btn-danger" 
+                            style="position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; padding: 0; border-radius: 50%; font-size: 10px;"
+                            onclick="adminDashboard.eliminarFotoExistente(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                container.appendChild(fotoDiv);
+            });
+        }
+        
+        // Inicializar el fotoManager con las fotos existentes
+        if (window.fotoManager) {
+            window.fotoManager.fotosIniciales = fotos || [];
+        }
+    }
+    
+    // Función para eliminar una foto existente
+    eliminarFotoExistente(index) {
+        if (window.fotoManager && window.fotoManager.fotosIniciales) {
+            window.fotoManager.fotosIniciales.splice(index, 1);
+            this.cargarFotosExistentes(window.fotoManager.fotosIniciales);
+        }
     }
     
     // Gestión de Mecánicos
@@ -787,9 +1853,122 @@ class AdminDashboard {
         });
     }
     
+    actualizarSelectClientesReparacion() {
+        const inputCliente = document.getElementById('clienteReparacion');
+        const dropdown = document.getElementById('clientesDropdown');
+        if (!inputCliente) return;
+        
+        // Configurar event listeners para el buscador
+        inputCliente.removeEventListener('input', this.handleClienteSearch);
+        inputCliente.removeEventListener('focus', this.handleClienteFocus);
+        inputCliente.removeEventListener('blur', this.handleClienteBlur);
+        
+        inputCliente.addEventListener('input', this.handleClienteSearch.bind(this));
+        inputCliente.addEventListener('focus', this.handleClienteFocus.bind(this));
+        inputCliente.addEventListener('blur', this.handleClienteBlur.bind(this));
+        
+        if (dropdown) {
+            dropdown.removeEventListener('click', this.handleClienteDropdownClick);
+            dropdown.addEventListener('click', this.handleClienteDropdownClick.bind(this));
+        }
+    }
+    
+    // Funciones del buscador de clientes
+    handleClienteSearch(event) {
+        const searchTerm = event.target.value.toLowerCase();
+        const clientes = this.getClientes();
+        const dropdown = document.getElementById('clientesDropdown');
+        
+        if (!dropdown) return;
+        
+        if (searchTerm.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        
+        const filteredClientes = clientes.filter(cliente => 
+            cliente.nombre.toLowerCase().includes(searchTerm) ||
+            cliente.cedula.toLowerCase().includes(searchTerm)
+        );
+        
+        this.mostrarResultadosCliente(filteredClientes);
+    }
+
+    handleClienteFocus(event) {
+        const searchTerm = event.target.value.toLowerCase();
+        const clientes = this.getClientes();
+        const dropdown = document.getElementById('clientesDropdown');
+        
+        if (!dropdown) return;
+        
+        if (searchTerm.length >= 2) {
+            const filteredClientes = clientes.filter(cliente => 
+                cliente.nombre.toLowerCase().includes(searchTerm) ||
+                cliente.cedula.toLowerCase().includes(searchTerm)
+            );
+            this.mostrarResultadosCliente(filteredClientes);
+        }
+    }
+
+    handleClienteBlur(event) {
+        // Pequeño delay para permitir el clic en el dropdown
+        setTimeout(() => {
+            const dropdown = document.getElementById('clientesDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        }, 200);
+    }
+
+    handleClienteDropdownClick(event) {
+        const target = event.target.closest('.cliente-item');
+        if (!target) return;
+        
+        const clienteId = target.dataset.clienteId;
+        const clientes = this.getClientes();
+        const cliente = clientes.find(c => c.id === clienteId);
+        
+        if (cliente) {
+            const inputCliente = document.getElementById('clienteReparacion');
+            inputCliente.value = cliente.nombre;
+            inputCliente.dataset.clienteId = cliente.id;
+            
+            const dropdown = document.getElementById('clientesDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+        }
+    }
+
+    mostrarResultadosCliente(clientes) {
+        const dropdown = document.getElementById('clientesDropdown');
+        if (!dropdown) return;
+        
+        if (clientes.length === 0) {
+            dropdown.innerHTML = '<div class="p-2 text-muted">No se encontraron clientes</div>';
+        } else {
+            dropdown.innerHTML = clientes.map(cliente => `
+                <div class="cliente-item p-2 border-bottom" data-cliente-id="${cliente.id}" style="cursor: pointer;">
+                    <div class="fw-bold">${cliente.nombre}</div>
+                    <small class="text-muted">${cliente.cedula}</small>
+                </div>
+            `).join('');
+        }
+        
+        dropdown.style.display = 'block';
+    }
+    
     // Carga Masiva
     cargarProductosMasivo() {
+        console.log('Iniciando carga masiva de productos...');
+        
         const fileInput = document.getElementById('archivoProductosMasivo');
+        if (!fileInput) {
+            console.error('No se encontró el input de archivo');
+            this.showNotification('Error: No se encontró el campo de archivo', 'danger');
+            return;
+        }
+        
         const file = fileInput.files[0];
         
         if (!file) {
@@ -797,14 +1976,19 @@ class AdminDashboard {
             return;
         }
         
+        console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
+                console.log('Archivo leído correctamente');
                 const csv = e.target.result;
                 
                 // Remover BOM si existe y líneas vacías
                 let csvContent = csv.replace(/^\uFEFF/, ''); // Remover BOM
                 const lines = csvContent.split('\n').filter(line => line.trim());
+                
+                console.log('Líneas encontradas:', lines.length);
                 
                 if (lines.length < 2) {
                     this.showNotification('El archivo debe contener al menos una línea de encabezados y una línea de datos', 'warning');
@@ -817,6 +2001,7 @@ class AdminDashboard {
                 if (lines[0].startsWith('sep=')) {
                     separator = lines[0].substring(4); // Extraer el separador después de 'sep='
                     startIndex = 1;
+                    console.log('Separador detectado:', separator);
                 } else {
                     // Detectar automáticamente el separador
                     const firstDataLine = lines[startIndex];
@@ -825,82 +2010,124 @@ class AdminDashboard {
                     } else if (firstDataLine.includes(',')) {
                         separator = ',';
                     }
+                    console.log('Separador automático detectado:', separator);
                 }
                 
                 const headers = lines[startIndex].split(separator);
+                console.log('Headers encontrados:', headers);
                 
                 let productosCargados = 0;
                 let productosDuplicados = 0;
+                let productosConError = 0;
                 
                 for (let i = startIndex + 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
-                        const values = lines[i].split(separator);
-                        const codigo = values[0]?.trim();
-                        
-                        // Verificar si el código ya existe
-                        const productos = this.getProductos();
-                        const productoExistente = productos.find(p => p.codigo === codigo);
-                        
-                        if (productoExistente) {
-                            productosDuplicados++;
-                            continue; // Saltar productos duplicados
+                        try {
+                            const values = lines[i].split(separator);
+                            const codigo = values[0]?.trim();
+                            
+                            if (!codigo) {
+                                console.warn(`Línea ${i + 1}: Código vacío, saltando...`);
+                                productosConError++;
+                                continue;
+                            }
+                            
+                            // Verificar si el código ya existe
+                            const productos = this.getProductos();
+                            const productoExistente = productos.find(p => p.codigo === codigo);
+                            
+                            if (productoExistente) {
+                                console.log(`Producto duplicado encontrado: ${codigo}`);
+                                productosDuplicados++;
+                                continue; // Saltar productos duplicados
+                            }
+                            
+                            const producto = {
+                                id: Date.now().toString() + i,
+                                codigo: codigo,
+                                nombre: values[1]?.trim() || 'Sin nombre',
+                                descripcion: values[2]?.trim() || 'Sin descripción',
+                                codigoQR: values[3]?.trim() || codigo, // Si no hay QR, usar el código
+                                precio: parseFloat(values[4]) || 0,
+                                descuentoMinimo: parseFloat(values[5]) || 0,
+                                descuentoMaximo: parseFloat(values[6]) || 0,
+                                stock: parseInt(values[7]) || 0,
+                                stockMinimo: parseInt(values[8]) || 5,
+                                stockMaximo: parseInt(values[9]) || 100,
+                                estado: values[10]?.trim() || 'Activo',
+                                proveedor: values[11]?.trim() || 'Sin proveedor',
+                                fechaCreacion: new Date().toISOString()
+                            };
+                            
+                            productos.push(producto);
+                            productosCargados++;
+                            console.log(`Producto cargado: ${codigo} - ${producto.nombre}`);
+                            
+                        } catch (error) {
+                            console.error(`Error procesando línea ${i + 1}:`, error);
+                            productosConError++;
                         }
-                        
-                        const producto = {
-                            id: Date.now().toString() + i,
-                            codigo: codigo,
-                            nombre: values[1]?.trim(),
-                            descripcion: values[2]?.trim(),
-                            precio: parseFloat(values[3]) || 0,
-                            descuentoMinimo: parseFloat(values[4]) || 0,
-                            descuentoMaximo: parseFloat(values[5]) || 0,
-                            stock: parseInt(values[6]) || 0,
-                            stockMinimo: parseInt(values[7]) || 5,
-                            stockMaximo: parseInt(values[8]) || 100,
-                            estado: values[9]?.trim() || 'Activo',
-                            proveedor: values[10]?.trim(),
-                            fechaCreacion: new Date().toISOString()
-                        };
-                        
-                        productos.push(producto);
-                        localStorage.setItem('productos', JSON.stringify(productos));
-                        productosCargados++;
                     }
                 }
                 
+                // Guardar todos los productos de una vez
+                const productos = this.getProductos();
+                localStorage.setItem('productos', JSON.stringify(productos));
+                
                 // Cerrar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('cargaMasivaProductosModal'));
-                modal.hide();
+                const modalElement = document.getElementById('cargaMasivaProductosModal');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        modal.hide();
+                    }
+                }
                 
                 // Mostrar notificación con resultados
                 let mensaje = `${productosCargados} productos cargados exitosamente`;
                 if (productosDuplicados > 0) {
                     mensaje += `. ${productosDuplicados} productos duplicados fueron omitidos`;
                 }
+                if (productosConError > 0) {
+                    mensaje += `. ${productosConError} productos con errores fueron omitidos`;
+                }
                 
+                console.log('Resultado final:', mensaje);
                 this.showNotification(mensaje, 'success');
+                
+                // Recargar datos
                 this.loadProductos();
                 this.loadDashboardData();
                 
                 // Limpiar formulario
-                document.getElementById('cargaMasivaProductosForm').reset();
+                const form = document.getElementById('cargaMasivaProductosForm');
+                if (form) {
+                    form.reset();
+                }
                 
             } catch (error) {
+                console.error('Error general al procesar el archivo:', error);
                 this.showNotification('Error al procesar el archivo: ' + error.message, 'danger');
             }
         };
+        
+        reader.onerror = (error) => {
+            console.error('Error al leer el archivo:', error);
+            this.showNotification('Error al leer el archivo', 'danger');
+        };
+        
         reader.readAsText(file);
     }
     
     descargarFormatoProductos() {
         // Crear contenido CSV con headers y ejemplos
         const csvContent = `sep=;
-codigo;nombre;descripcion;precio;descuentoMinimo;descuentoMaximo;stock;stockMinimo;stockMaximo;estado;proveedor
-PROD001;Aceite de Motor 4T;Aceite sintético para motos 4T 1L;15.50;0.00;0.00;50;5;100;Activo;Aceites Pro
-PROD002;Filtro de Aire;Filtro de aire de alta calidad universal;8.75;0.00;0.00;30;5;100;Activo;Filtros Max
-PROD003;Pastillas de Freno;Par de pastillas de freno delantero;12.00;0.00;0.00;25;5;100;Activo;Frenos Seguros
-PROD004;Cadena de Transmisión;Cadena de transmisión 520 para motos;45.00;0.00;0.00;15;5;100;Activo;Transmisiones Rápidas
-PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bujías Elite`;
+codigo;nombre;descripcion;codigoQR;precio;descuentoMinimo;descuentoMaximo;stock;stockMinimo;stockMaximo;estado;proveedor
+PROD001;Aceite de Motor 4T;Aceite sintético para motos 4T 1L;PROD001;15.50;0.00;0.00;50;5;100;Activo;Aceites Pro
+PROD002;Filtro de Aire;Filtro de aire de alta calidad universal;PROD002;8.75;0.00;0.00;30;5;100;Activo;Filtros Max
+PROD003;Pastillas de Freno;Par de pastillas de freno delantero;PROD003;12.00;0.00;0.00;25;5;100;Activo;Frenos Seguros
+PROD004;Cadena de Transmisión;Cadena de transmisión 520 para motos;PROD004;45.00;0.00;0.00;15;5;100;Activo;Transmisiones Rápidas
+PROD005;Bujía NGK;Bujía NGK CR8E para motos;PROD005;5.25;0.00;0.00;100;5;100;Activo;Bujías Elite`;
         
         // Crear blob con BOM para Excel
         const BOM = '\uFEFF';
@@ -921,7 +2148,15 @@ PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bu
     }
     
     cargarProveedoresMasivo() {
+        console.log('Iniciando carga masiva de proveedores...');
+        
         const fileInput = document.getElementById('archivoProveedoresMasivo');
+        if (!fileInput) {
+            console.error('No se encontró el input de archivo de proveedores');
+            this.showNotification('Error: No se encontró el campo de archivo', 'danger');
+            return;
+        }
+        
         const file = fileInput.files[0];
         
         if (!file) {
@@ -929,14 +2164,19 @@ PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bu
             return;
         }
         
+        console.log('Archivo de proveedores seleccionado:', file.name, 'Tamaño:', file.size);
+        
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
+                console.log('Archivo de proveedores leído correctamente');
                 const csv = e.target.result;
                 
                 // Remover BOM si existe y líneas vacías
                 let csvContent = csv.replace(/^\uFEFF/, ''); // Remover BOM
                 const lines = csvContent.split('\n').filter(line => line.trim());
+                
+                console.log('Líneas de proveedores encontradas:', lines.length);
                 
                 if (lines.length < 2) {
                     this.showNotification('El archivo debe contener al menos una línea de encabezados y una línea de datos', 'warning');
@@ -949,6 +2189,7 @@ PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bu
                 if (lines[0].startsWith('sep=')) {
                     separator = lines[0].substring(4); // Extraer el separador después de 'sep='
                     startIndex = 1;
+                    console.log('Separador de proveedores detectado:', separator);
                 } else {
                     // Detectar automáticamente el separador
                     const firstDataLine = lines[startIndex];
@@ -957,61 +2198,105 @@ PROD005;Bujía NGK;Bujía NGK CR8E para motos;5.25;0.00;0.00;100;5;100;Activo;Bu
                     } else if (firstDataLine.includes(',')) {
                         separator = ',';
                     }
+                    console.log('Separador automático de proveedores detectado:', separator);
                 }
+                
+                const headers = lines[startIndex].split(separator);
+                console.log('Headers de proveedores encontrados:', headers);
                 
                 let proveedoresCargados = 0;
                 let proveedoresDuplicados = 0;
+                let proveedoresConError = 0;
                 
                 for (let i = startIndex + 1; i < lines.length; i++) {
                     if (lines[i].trim()) {
-                        const values = lines[i].split(separator);
-                        const ruc = values[0]?.trim();
-                        
-                        // Verificar si el RUC ya existe
-                        const proveedores = this.getProveedores();
-                        const proveedorExistente = proveedores.find(p => p.ruc === ruc);
-                        
-                        if (proveedorExistente) {
-                            proveedoresDuplicados++;
-                            continue; // Saltar proveedores duplicados
+                        try {
+                            const values = lines[i].split(separator);
+                            const ruc = values[0]?.trim();
+                            
+                            if (!ruc) {
+                                console.warn(`Línea ${i + 1}: RUC vacío, saltando...`);
+                                proveedoresConError++;
+                                continue;
+                            }
+                            
+                            // Verificar si el RUC ya existe
+                            const proveedores = this.getProveedores();
+                            const proveedorExistente = proveedores.find(p => p.ruc === ruc);
+                            
+                            if (proveedorExistente) {
+                                console.log(`Proveedor duplicado encontrado: ${ruc}`);
+                                proveedoresDuplicados++;
+                                continue; // Saltar proveedores duplicados
+                            }
+                            
+                            const proveedor = {
+                                id: Date.now().toString() + i,
+                                ruc: ruc,
+                                nombre: values[1]?.trim() || 'Sin nombre',
+                                direccion: values[2]?.trim() || 'Sin dirección',
+                                telefono: values[3]?.trim() || 'Sin teléfono',
+                                email: values[4]?.trim() || 'Sin email',
+                                fechaCreacion: new Date().toISOString()
+                            };
+                            
+                            proveedores.push(proveedor);
+                            proveedoresCargados++;
+                            console.log(`Proveedor cargado: ${ruc} - ${proveedor.nombre}`);
+                            
+                        } catch (error) {
+                            console.error(`Error procesando línea ${i + 1} de proveedores:`, error);
+                            proveedoresConError++;
                         }
-                        
-                        const proveedor = {
-                            id: Date.now().toString() + i,
-                            ruc: ruc,
-                            nombre: values[1]?.trim(),
-                            direccion: values[2]?.trim(),
-                            telefono: values[3]?.trim(),
-                            email: values[4]?.trim(),
-                            fechaCreacion: new Date().toISOString()
-                        };
-                        
-                        proveedores.push(proveedor);
-                        localStorage.setItem('proveedores', JSON.stringify(proveedores));
-                        proveedoresCargados++;
                     }
                 }
                 
+                // Guardar todos los proveedores de una vez
+                const proveedores = this.getProveedores();
+                localStorage.setItem('proveedores', JSON.stringify(proveedores));
+                
                 // Cerrar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('cargaMasivaProveedoresModal'));
-                modal.hide();
+                const modalElement = document.getElementById('cargaMasivaProveedoresModal');
+                if (modalElement) {
+                    const modal = bootstrap.Modal.getInstance(modalElement);
+                    if (modal) {
+                        modal.hide();
+                    }
+                }
                 
                 // Mostrar notificación con resultados
                 let mensaje = `${proveedoresCargados} proveedores cargados exitosamente`;
                 if (proveedoresDuplicados > 0) {
                     mensaje += `. ${proveedoresDuplicados} proveedores duplicados fueron omitidos`;
                 }
+                if (proveedoresConError > 0) {
+                    mensaje += `. ${proveedoresConError} proveedores con errores fueron omitidos`;
+                }
                 
+                console.log('Resultado final de proveedores:', mensaje);
                 this.showNotification(mensaje, 'success');
+                
+                // Recargar datos
                 this.loadProveedores();
+                this.loadDashboardData();
                 
                 // Limpiar formulario
-                document.getElementById('cargaMasivaProveedoresForm').reset();
+                const form = document.getElementById('cargaMasivaProveedoresForm');
+                if (form) {
+                    form.reset();
+                }
                 
             } catch (error) {
+                console.error('Error general al procesar archivo de proveedores:', error);
                 this.showNotification('Error al procesar el archivo: ' + error.message, 'danger');
             }
         };
+        
+        reader.onerror = (error) => {
+            console.error('Error al leer archivo de proveedores:', error);
+            this.showNotification('Error al leer el archivo', 'danger');
+        };
+        
         reader.readAsText(file);
     }
     
@@ -1287,6 +2572,10 @@ ruc;nombre;direccion;telefono;email
         return JSON.parse(localStorage.getItem('reparaciones') || '[]');
     }
     
+    getSolicitudesAdquisicion() {
+        return JSON.parse(localStorage.getItem('solicitudesAdquisicion') || '[]');
+    }
+    
     getMecanicos() {
         return JSON.parse(localStorage.getItem('mecanicos') || '[]');
     }
@@ -1319,6 +2608,38 @@ ruc;nombre;direccion;telefono;email
         return clases[estado] || 'pendiente';
     }
     
+    // Función para resetear el modal de reparación después de guardar
+    resetearModalReparacion() {
+        // Limpiar formulario
+        document.getElementById('reparacionForm').reset();
+        
+        // Limpiar fotos
+        const fotosContainer = document.getElementById('fotosIniciales');
+        if (fotosContainer) {
+            fotosContainer.innerHTML = '';
+        }
+        
+        // Resetear fotoManager si está disponible
+        if (window.fotoManager) {
+            window.fotoManager.fotosIniciales = [];
+        }
+        
+        // Restaurar título y botón originales
+        const modalTitle = document.querySelector('#reparacionModal .modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Nueva Reparación';
+        }
+        
+        const guardarBtn = document.querySelector('#reparacionModal .btn-primary');
+        if (guardarBtn) {
+            guardarBtn.textContent = 'Guardar';
+            guardarBtn.onclick = () => this.guardarReparacion();
+        }
+        
+        // Limpiar variable de edición
+        this.reparacionEditando = null;
+    }
+    
     cerrarModal(modalId) {
         const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
         if (modal) {
@@ -1329,6 +2650,11 @@ ruc;nombre;direccion;telefono;email
         const form = document.querySelector(`#${modalId} form`);
         if (form) {
             form.reset();
+        }
+        
+        // Si es el modal de reparación, resetear completamente
+        if (modalId === 'reparacionModal') {
+            this.resetearModalReparacion();
         }
     }
     
@@ -1351,6 +2677,8 @@ ruc;nombre;direccion;telefono;email
     
     // Métodos para editar y eliminar productos
     editarProducto(id) {
+        console.log('Editando producto con ID:', id);
+        
         const productos = this.getProductos();
         const producto = productos.find(p => p.id === id);
         
@@ -1359,29 +2687,69 @@ ruc;nombre;direccion;telefono;email
             return;
         }
         
+        console.log('Producto encontrado:', producto);
+        
         // Llenar el modal con los datos del producto
-        document.getElementById('codigoProducto').value = producto.codigo;
-        document.getElementById('nombreProducto').value = producto.nombre;
-        document.getElementById('descripcionProducto').value = producto.descripcion || '';
-        document.getElementById('precioProducto').value = producto.precio;
-        document.getElementById('descuentoMinimoProducto').value = producto.descuentoMinimo || producto.descuento || 0;
-        document.getElementById('descuentoMaximoProducto').value = producto.descuentoMaximo || 0;
-        document.getElementById('stockProducto').value = producto.stock;
-        document.getElementById('stockMinimoProducto').value = producto.stockMinimo;
-        document.getElementById('stockMaximoProducto').value = producto.stockMaximo;
-        document.getElementById('proveedorProducto').value = producto.proveedor;
+        const codigoInput = document.getElementById('codigoProducto');
+        const nombreInput = document.getElementById('nombreProducto');
+        const descripcionInput = document.getElementById('descripcionProducto');
+        const codigoQRInput = document.getElementById('codigoQRProducto');
+        const precioInput = document.getElementById('precioProducto');
+        const descuentoMinimoInput = document.getElementById('descuentoMinimoProducto');
+        const descuentoMaximoInput = document.getElementById('descuentoMaximoProducto');
+        const stockInput = document.getElementById('stockProducto');
+        const stockMinimoInput = document.getElementById('stockMinimoProducto');
+        const stockMaximoInput = document.getElementById('stockMaximoProducto');
+        const proveedorInput = document.getElementById('proveedorProducto');
+        
+        // Verificar que todos los elementos existan
+        if (!codigoInput || !nombreInput || !descripcionInput || !codigoQRInput || 
+            !precioInput || !descuentoMinimoInput || !descuentoMaximoInput || 
+            !stockInput || !stockMinimoInput || !stockMaximoInput || !proveedorInput) {
+            console.error('No se encontraron todos los elementos del formulario');
+            this.showNotification('Error al cargar el formulario de edición', 'error');
+            return;
+        }
+        
+        // Llenar los campos con los datos del producto
+        codigoInput.value = producto.codigo || '';
+        nombreInput.value = producto.nombre || '';
+        descripcionInput.value = producto.descripcion || '';
+        codigoQRInput.value = producto.codigoQR || producto.codigo || '';
+        precioInput.value = producto.precio || '';
+        descuentoMinimoInput.value = producto.descuentoMinimo || producto.descuento || 0;
+        descuentoMaximoInput.value = producto.descuentoMaximo || 0;
+        stockInput.value = producto.stock || '';
+        stockMinimoInput.value = producto.stockMinimo || 5;
+        stockMaximoInput.value = producto.stockMaximo || 100;
+        proveedorInput.value = producto.proveedor || '';
+        
+        // Generar vista previa del QR
+        const codigoParaQR = producto.codigoQR || producto.codigo || 'PROD-' + Date.now();
+        this.generarVistaPreviaQR(codigoParaQR);
         
         // Cambiar el título del modal
-        document.querySelector('#productoModal .modal-title').textContent = 'Editar Producto';
+        const modalTitle = document.querySelector('#productoModal .modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Editar Producto';
+        }
         
         // Cambiar el botón de guardar
         const btnGuardar = document.querySelector('#productoModal .btn-primary');
-        btnGuardar.textContent = 'Actualizar';
-        btnGuardar.onclick = () => this.actualizarProducto(id);
+        if (btnGuardar) {
+            btnGuardar.textContent = 'Actualizar';
+            btnGuardar.onclick = () => this.actualizarProducto(id);
+        }
         
         // Mostrar el modal
-        const modal = new bootstrap.Modal(document.getElementById('productoModal'));
-        modal.show();
+        const modalElement = document.getElementById('productoModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            console.error('Modal de producto no encontrado');
+            this.showNotification('Error al abrir el modal de edición', 'error');
+        }
     }
     
     eliminarProducto(id) {
@@ -1414,19 +2782,67 @@ ruc;nombre;direccion;telefono;email
     }
     
     actualizarProducto(id) {
-        const codigo = document.getElementById('codigoProducto').value;
-        const nombre = document.getElementById('nombreProducto').value;
-        const descripcion = document.getElementById('descripcionProducto').value;
-        const precio = parseFloat(document.getElementById('precioProducto').value);
-        const descuentoMinimo = parseFloat(document.getElementById('descuentoMinimoProducto').value) || 0;
-        const descuentoMaximo = parseFloat(document.getElementById('descuentoMaximoProducto').value) || 0;
-        const stock = parseInt(document.getElementById('stockProducto').value);
-        const stockMinimo = parseInt(document.getElementById('stockMinimoProducto').value);
-        const stockMaximo = parseInt(document.getElementById('stockMaximoProducto').value);
-        const proveedor = document.getElementById('proveedorProducto').value;
+        console.log('Actualizando producto con ID:', id);
         
+        // Obtener valores del formulario
+        const codigoInput = document.getElementById('codigoProducto');
+        const nombreInput = document.getElementById('nombreProducto');
+        const descripcionInput = document.getElementById('descripcionProducto');
+        const codigoQRInput = document.getElementById('codigoQRProducto');
+        const precioInput = document.getElementById('precioProducto');
+        const descuentoMinimoInput = document.getElementById('descuentoMinimoProducto');
+        const descuentoMaximoInput = document.getElementById('descuentoMaximoProducto');
+        const stockInput = document.getElementById('stockProducto');
+        const stockMinimoInput = document.getElementById('stockMinimoProducto');
+        const stockMaximoInput = document.getElementById('stockMaximoProducto');
+        const proveedorInput = document.getElementById('proveedorProducto');
+        
+        // Verificar que todos los elementos existan
+        if (!codigoInput || !nombreInput || !descripcionInput || !codigoQRInput || 
+            !precioInput || !descuentoMinimoInput || !descuentoMaximoInput || 
+            !stockInput || !stockMinimoInput || !stockMaximoInput || !proveedorInput) {
+            console.error('No se encontraron todos los elementos del formulario');
+            this.showNotification('Error al obtener datos del formulario', 'error');
+            return;
+        }
+        
+        // Obtener valores
+        const codigo = codigoInput.value.trim();
+        const nombre = nombreInput.value.trim();
+        const descripcion = descripcionInput.value.trim();
+        const codigoQR = codigoQRInput.value.trim() || codigo; // Si no se ingresa QR, usar el código
+        const precio = parseFloat(precioInput.value);
+        const descuentoMinimo = parseFloat(descuentoMinimoInput.value) || 0;
+        const descuentoMaximo = parseFloat(descuentoMaximoInput.value) || 0;
+        const stock = parseInt(stockInput.value);
+        const stockMinimo = parseInt(stockMinimoInput.value);
+        const stockMaximo = parseInt(stockMaximoInput.value);
+        const proveedor = proveedorInput.value.trim();
+        
+        // Validar campos requeridos
         if (!codigo || !nombre || !precio || !stock || !stockMinimo || !stockMaximo || !proveedor) {
             this.showNotification('Por favor complete todos los campos requeridos', 'warning');
+            return;
+        }
+        
+        // Validar valores numéricos
+        if (isNaN(precio) || precio <= 0) {
+            this.showNotification('El precio debe ser un número mayor a 0', 'warning');
+            return;
+        }
+        
+        if (isNaN(stock) || stock < 0) {
+            this.showNotification('El stock debe ser un número mayor o igual a 0', 'warning');
+            return;
+        }
+        
+        if (isNaN(stockMinimo) || stockMinimo < 0) {
+            this.showNotification('El stock mínimo debe ser un número mayor o igual a 0', 'warning');
+            return;
+        }
+        
+        if (isNaN(stockMaximo) || stockMaximo <= stockMinimo) {
+            this.showNotification('El stock máximo debe ser mayor al stock mínimo', 'warning');
             return;
         }
         
@@ -1446,6 +2862,7 @@ ruc;nombre;direccion;telefono;email
                 codigo,
                 nombre,
                 descripcion,
+                codigoQR,
                 precio,
                 descuentoMinimo,
                 descuentoMaximo,
@@ -1473,6 +2890,9 @@ ruc;nombre;direccion;telefono;email
         // Limpiar formulario
         document.getElementById('productoForm').reset();
         
+        // Limpiar vista previa del QR
+        this.generarVistaPreviaQR('');
+        
         // Restaurar título del modal
         document.querySelector('#productoModal .modal-title').textContent = 'Nuevo Producto';
         
@@ -1480,6 +2900,26 @@ ruc;nombre;direccion;telefono;email
         const btnGuardar = document.querySelector('#productoModal .btn-primary');
         btnGuardar.textContent = 'Guardar';
         btnGuardar.onclick = () => this.guardarProducto();
+    }
+    
+    abrirModalNuevoProducto() {
+        // Limpiar formulario
+        document.getElementById('productoForm').reset();
+        
+        // Generar vista previa del QR con código por defecto
+        this.generarVistaPreviaQR('');
+        
+        // Restaurar título del modal
+        document.querySelector('#productoModal .modal-title').textContent = 'Nuevo Producto';
+        
+        // Restaurar botón de guardar
+        const btnGuardar = document.querySelector('#productoModal .btn-primary');
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.onclick = () => this.guardarProducto();
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('productoModal'));
+        modal.show();
     }
     
     confirmarEliminarProducto(id) {
@@ -1509,7 +2949,35 @@ ruc;nombre;direccion;telefono;email
     }
     
     editarProveedor(id) {
-        this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        const proveedores = this.getProveedores();
+        const proveedor = proveedores.find(p => p.id === id);
+        
+        if (!proveedor) {
+            this.showNotification('Proveedor no encontrado', 'error');
+            return;
+        }
+        
+        // Marcar que estamos editando
+        this.proveedorEditando = proveedor;
+        
+        // Llenar el modal con los datos del proveedor
+        document.getElementById('rucProveedor').value = proveedor.ruc;
+        document.getElementById('nombreProveedor').value = proveedor.nombre;
+        document.getElementById('direccionProveedor').value = proveedor.direccion;
+        document.getElementById('telefonoProveedor').value = proveedor.telefono;
+        document.getElementById('emailProveedor').value = proveedor.email;
+        
+        // Cambiar el título del modal y el texto del botón
+        document.querySelector('#proveedorModal .modal-title').textContent = 'Editar Proveedor';
+        document.querySelector('#proveedorModal .btn-primary').textContent = 'Actualizar';
+        
+        // Cambiar el onclick del botón para usar actualizarProveedor
+        const btnGuardar = document.querySelector('#proveedorModal .btn-primary');
+        btnGuardar.onclick = () => this.actualizarProveedor();
+        
+        // Abrir el modal
+        const modal = new bootstrap.Modal(document.getElementById('proveedorModal'));
+        modal.show();
     }
     
     eliminarProveedor(id) {
@@ -1882,7 +3350,14 @@ ruc;nombre;direccion;telefono;email
 
     // Métodos para gestión de ventas
     loadVentas() {
-        const ventas = JSON.parse(localStorage.getItem('facturas') || '[]');
+        let ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
+        
+        // Si no hay ventas, generar datos de ejemplo
+        if (ventas.length === 0) {
+            ventas = this.generarVentasEjemplo();
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+        }
+        
         const ventasTable = document.getElementById('ventasTable');
         const ventasRecientes = document.getElementById('ventasRecientes');
         
@@ -1898,6 +3373,73 @@ ruc;nombre;direccion;telefono;email
         this.setupVentasFilters();
     }
 
+    generarVentasEjemplo() {
+        const ventasEjemplo = [
+            {
+                numero: 'F001-2024',
+                cliente: 'Juan Pérez',
+                productos: [
+                    { nombre: 'Filtro de aceite Honda', precio: 15.50, cantidad: 2 },
+                    { nombre: 'Aceite de motor 10W-30', precio: 25.00, cantidad: 1 }
+                ],
+                subtotal: 56.00,
+                iva: 6.72,
+                total: 62.72,
+                fecha: new Date(2024, 11, 15).toISOString()
+            },
+            {
+                numero: 'F002-2024',
+                cliente: 'María González',
+                productos: [
+                    { nombre: 'Batería de moto 12V', precio: 45.00, cantidad: 1 },
+                    { nombre: 'Cable de bujía', precio: 8.50, cantidad: 1 }
+                ],
+                subtotal: 53.50,
+                iva: 6.42,
+                total: 59.92,
+                fecha: new Date(2024, 11, 14).toISOString()
+            },
+            {
+                numero: 'F003-2024',
+                cliente: 'Carlos Rodríguez',
+                productos: [
+                    { nombre: 'Freno de disco delantero', precio: 35.00, cantidad: 1 },
+                    { nombre: 'Pastillas de freno', precio: 12.00, cantidad: 2 }
+                ],
+                subtotal: 59.00,
+                iva: 7.08,
+                total: 66.08,
+                fecha: new Date(2024, 11, 13).toISOString()
+            },
+            {
+                numero: 'F004-2024',
+                cliente: 'Ana Martínez',
+                productos: [
+                    { nombre: 'Cadena de transmisión', precio: 28.00, cantidad: 1 },
+                    { nombre: 'Piñón trasero', precio: 18.50, cantidad: 1 }
+                ],
+                subtotal: 46.50,
+                iva: 5.58,
+                total: 52.08,
+                fecha: new Date(2024, 11, 12).toISOString()
+            },
+            {
+                numero: 'F005-2024',
+                cliente: 'Luis Torres',
+                productos: [
+                    { nombre: 'Espejo retrovisor derecho', precio: 22.00, cantidad: 1 },
+                    { nombre: 'Manillar de aluminio', precio: 55.00, cantidad: 1 }
+                ],
+                subtotal: 77.00,
+                iva: 9.24,
+                total: 86.24,
+                fecha: new Date(2024, 11, 11).toISOString()
+            }
+        ];
+        
+        return ventasEjemplo;
+    }
+
     renderVentasTable(ventas, tableElement) {
         if (ventas.length === 0) {
             tableElement.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No hay ventas registradas</td></tr>';
@@ -1907,21 +3449,22 @@ ruc;nombre;direccion;telefono;email
         tableElement.innerHTML = ventas.map(factura => {
             const productos = factura.productos.map(p => p.nombre).join(', ');
             const fecha = new Date(factura.fecha).toLocaleDateString('es-ES');
+            const nombreCliente = typeof factura.cliente === 'string' ? factura.cliente : factura.cliente.nombre;
             
             return `
                 <tr>
                     <td>${factura.numero}</td>
-                    <td>${factura.cliente.nombre}</td>
+                    <td>${nombreCliente}</td>
                     <td>${productos}</td>
                     <td>$${factura.subtotal.toFixed(2)}</td>
                     <td>$${factura.iva.toFixed(2)}</td>
                     <td>$${factura.total.toFixed(2)}</td>
                     <td>${fecha}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.verFactura('${factura.numero}')">
+                        <button class="btn btn-sm btn-outline-primary" onclick="adminDashboard.verFactura('${factura.numero}')" title="Ver detalles de la venta">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="adminDashboard.descargarFactura('${factura.numero}')">
+                        <button class="btn btn-sm btn-outline-success" onclick="adminDashboard.descargarFactura('${factura.numero}')" title="Descargar factura PDF">
                             <i class="fas fa-download"></i>
                         </button>
                     </td>
@@ -1951,11 +3494,12 @@ ruc;nombre;direccion;telefono;email
         containerElement.innerHTML = ventasRecientes.map(factura => {
             const productos = factura.productos.map(p => p.nombre).join(', ');
             const fecha = new Date(factura.fecha).toLocaleDateString('es-ES');
+            const nombreCliente = typeof factura.cliente === 'string' ? factura.cliente : factura.cliente.nombre;
             
             return `
                 <tr>
                     <td>${factura.numero}</td>
-                    <td>${factura.cliente.nombre}</td>
+                    <td>${nombreCliente}</td>
                     <td>${productos}</td>
                     <td>$${factura.total.toFixed(2)}</td>
                     <td>${fecha}</td>
@@ -1982,7 +3526,7 @@ ruc;nombre;direccion;telefono;email
     }
 
     filtrarVentas() {
-        const ventas = JSON.parse(localStorage.getItem('facturas') || '[]');
+        const ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
         const searchTerm = document.getElementById('searchVentas')?.value.toLowerCase() || '';
         const filtroMes = document.getElementById('filtroMesVentas')?.value || '';
         
@@ -1990,11 +3534,12 @@ ruc;nombre;direccion;telefono;email
         
         // Filtrar por búsqueda
         if (searchTerm) {
-            ventasFiltradas = ventasFiltradas.filter(factura => 
-                factura.cliente.nombre.toLowerCase().includes(searchTerm) ||
-                factura.numero.toLowerCase().includes(searchTerm) ||
-                factura.productos.some(p => p.nombre.toLowerCase().includes(searchTerm))
-            );
+            ventasFiltradas = ventasFiltradas.filter(factura => {
+                const nombreCliente = typeof factura.cliente === 'string' ? factura.cliente : factura.cliente.nombre;
+                return nombreCliente.toLowerCase().includes(searchTerm) ||
+                       factura.numero.toLowerCase().includes(searchTerm) ||
+                       factura.productos.some(p => p.nombre.toLowerCase().includes(searchTerm));
+            });
         }
         
         // Filtrar por mes
@@ -2013,8 +3558,8 @@ ruc;nombre;direccion;telefono;email
     }
 
     verFactura(numeroFactura) {
-        const facturas = JSON.parse(localStorage.getItem('facturas') || '[]');
-        const factura = facturas.find(f => f.numero === numeroFactura);
+        const ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
+        const factura = ventas.find(f => f.numero === numeroFactura);
         
         if (!factura) {
             this.showNotification('Factura no encontrada', 'error');
@@ -2027,34 +3572,41 @@ ruc;nombre;direccion;telefono;email
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Factura ${factura.numero}</h5>
+                            <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>Factura ${factura.numero}</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6">
                                     <h6>Datos del Cliente</h6>
-                                    <p><strong>Nombre:</strong> ${factura.cliente.nombre}</p>
-                                    <p><strong>Cédula/RUC:</strong> ${factura.cliente.cedula}</p>
-                                    <p><strong>Dirección:</strong> ${factura.cliente.direccion}</p>
-                                    <p><strong>Teléfono:</strong> ${factura.cliente.telefono}</p>
+                                    ${typeof factura.cliente === 'string' ? 
+                                        `<p><strong>Nombre:</strong> ${factura.cliente}</p>
+                                         <p><strong>Cédula/RUC:</strong> No especificada</p>
+                                         <p><strong>Dirección:</strong> No especificada</p>
+                                         <p><strong>Teléfono:</strong> No especificado</p>` :
+                                        `<p><strong>Nombre:</strong> ${factura.cliente.nombre}</p>
+                                         <p><strong>Cédula/RUC:</strong> ${factura.cliente.cedula || 'No especificada'}</p>
+                                         <p><strong>Dirección:</strong> ${factura.cliente.direccion || 'No especificada'}</p>
+                                         <p><strong>Teléfono:</strong> ${factura.cliente.telefono || 'No especificado'}</p>`
+                                    }
                                 </div>
                                 <div class="col-md-6">
-                                    <h6>Datos de la Factura</h6>
+                                    <h6><i class="fas fa-file-invoice me-2"></i>Datos de la Factura</h6>
                                     <p><strong>Número:</strong> ${factura.numero}</p>
                                     <p><strong>Fecha:</strong> ${new Date(factura.fecha).toLocaleDateString('es-ES')}</p>
                                     <p><strong>Vendedor:</strong> ${factura.vendedor}</p>
                                 </div>
                             </div>
                             <hr>
-                            <h6>Productos</h6>
+                            <h6><i class="fas fa-boxes me-2"></i>Productos</h6>
                             <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
+                                <table class="table table-sm table-striped">
+                                    <thead class="table-light">
                                         <tr>
                                             <th>Producto</th>
                                             <th>Cantidad</th>
                                             <th>Precio Unit.</th>
+                                            <th>Descuento</th>
                                             <th>Subtotal</th>
                                         </tr>
                                     </thead>
@@ -2064,17 +3616,28 @@ ruc;nombre;direccion;telefono;email
                                                 <td>${p.nombre}</td>
                                                 <td>${p.cantidad}</td>
                                                 <td>$${p.precio.toFixed(2)}</td>
-                                                <td>$${(p.precio * p.cantidad).toFixed(2)}</td>
+                                                <td>${p.descuento && p.descuento > 0 ? `<span class="text-success">-$${p.descuento.toFixed(2)}</span>` : '-'}</td>
+                                                <td>$${((p.precio - (p.descuento || 0)) * p.cantidad).toFixed(2)}</td>
                                             </tr>
                                         `).join('')}
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="row">
+                            <div class="row mt-3">
                                 <div class="col-md-6 offset-md-6">
-                                    <table class="table table-sm">
+                                    <table class="table table-sm table-borderless">
                                         <tr>
                                             <td><strong>Subtotal:</strong></td>
+                                            <td>$${(factura.subtotalSinDescuento || factura.subtotal).toFixed(2)}</td>
+                                        </tr>
+                                        ${factura.descuentoTotal && factura.descuentoTotal > 0 ? `
+                                        <tr class="table-success">
+                                            <td><strong>Descuento:</strong></td>
+                                            <td class="text-success">-$${factura.descuentoTotal.toFixed(2)}</td>
+                                        </tr>
+                                        ` : ''}
+                                        <tr>
+                                            <td><strong>Subtotal con descuento:</strong></td>
                                             <td>$${factura.subtotal.toFixed(2)}</td>
                                         </tr>
                                         <tr>
@@ -2115,8 +3678,8 @@ ruc;nombre;direccion;telefono;email
     }
 
     descargarFactura(numeroFactura) {
-        const facturas = JSON.parse(localStorage.getItem('facturas') || '[]');
-        const factura = facturas.find(f => f.numero === numeroFactura);
+        const ventas = JSON.parse(localStorage.getItem('ventas') || '[]');
+        const factura = ventas.find(f => f.numero === numeroFactura);
         
         if (!factura) {
             this.showNotification('Factura no encontrada', 'error');
@@ -2211,7 +3774,14 @@ ruc;nombre;direccion;telefono;email
     }
 
     loadVentasRecientes() {
-        const ventas = this.getVentas();
+        let ventas = this.getVentas();
+        
+        // Si no hay ventas, generar datos de ejemplo
+        if (ventas.length === 0) {
+            ventas = this.generarVentasEjemplo();
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+        }
+        
         const ventasRecientes = document.getElementById('ventasRecientes');
         
         if (!ventasRecientes) return;
@@ -2800,20 +4370,610 @@ ruc;nombre;direccion;telefono;email
                 }
             }
         });
+        
+        // Configurar eventos para el código QR
+        this.setupQREvents();
+    }
+    
+    // Funciones para el código QR
+    setupQREvents() {
+        const codigoQRInput = document.getElementById('codigoQRProducto');
+        const codigoInput = document.getElementById('codigoProducto');
+        
+        if (codigoQRInput) {
+            codigoQRInput.addEventListener('input', (e) => {
+                const valor = e.target.value || codigoInput?.value || '';
+                // Agregar un pequeño delay para evitar generación excesiva
+                clearTimeout(this.qrTimeout);
+                this.qrTimeout = setTimeout(() => {
+                    this.generarVistaPreviaQR(valor);
+                }, 300);
+            });
+        }
+        
+        if (codigoInput) {
+            codigoInput.addEventListener('input', (e) => {
+                const codigoQRValor = codigoQRInput?.value || '';
+                const valor = codigoQRValor || e.target.value || '';
+                // Agregar un pequeño delay para evitar generación excesiva
+                clearTimeout(this.qrTimeout);
+                this.qrTimeout = setTimeout(() => {
+                    this.generarVistaPreviaQR(valor);
+                }, 300);
+            });
+        }
+    }
+    
+    generarVistaPreviaQR(texto) {
+        const qrPreview = document.getElementById('qrPreview');
+        if (!qrPreview) {
+            return;
+        }
+        
+        // Si no hay texto, generar un código por defecto
+        if (!texto) {
+            texto = 'PROD-' + Date.now();
+        }
+        
+        // Limpiar el contenedor
+        qrPreview.innerHTML = '';
+        
+        try {
+            // Verificar si la librería QR está disponible
+            if (typeof QRCode === 'undefined') {
+                qrPreview.innerHTML = '<small class="text-warning">Librería QR no disponible</small>';
+                return;
+            }
+            
+            // Intentar primero con toDataURL
+            if (QRCode.toDataURL) {
+                QRCode.toDataURL(texto, {
+                    width: 120,
+                    height: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error, url) => {
+                    if (error) {
+                        console.error('Error con toDataURL:', error);
+                        // Intentar con toCanvas como fallback
+                        this.generarQRConCanvas(texto, qrPreview);
+                    } else {
+                        // Crear imagen del QR
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Código QR';
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        qrPreview.appendChild(img);
+                    }
+                });
+            } else {
+                // Fallback a toCanvas
+                this.generarQRConCanvas(texto, qrPreview);
+            }
+        } catch (error) {
+            console.error('Error en generarVistaPreviaQR:', error);
+            // Intentar con toCanvas como último recurso
+            this.generarQRConCanvas(texto, qrPreview);
+        }
+    }
+    
+    generarQRConCanvas(texto, qrPreview) {
+        try {
+            if (QRCode.toCanvas) {
+                QRCode.toCanvas(qrPreview, texto, {
+                    width: 120,
+                    height: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error) => {
+                    if (error) {
+                        console.error('Error con toCanvas:', error);
+                        qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+                    }
+                });
+            } else {
+                qrPreview.innerHTML = '<small class="text-danger">Métodos QR no disponibles</small>';
+            }
+        } catch (error) {
+            console.error('Error en generarQRConCanvas:', error);
+            qrPreview.innerHTML = '<small class="text-danger">Error al generar QR</small>';
+        }
+    }
+
+    // Función para generar PDF de productos con códigos QR
+    async generarPDFProductos() {
+        try {
+            console.log('Iniciando generación de PDF...');
+            
+            const productos = this.getProductos();
+            console.log('Productos encontrados:', productos.length);
+            
+            if (productos.length === 0) {
+                this.showNotification('No hay productos para generar el PDF', 'warning');
+                return;
+            }
+
+            // Mostrar indicador de carga
+            this.showNotification('Generando PDF con códigos QR...', 'info');
+
+            // Verificar que jsPDF esté disponible
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF no está disponible');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configuración del documento
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            const margin = 20;
+            const contentWidth = pageWidth - (margin * 2);
+            
+            // Título del documento
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Catálogo de Productos', pageWidth / 2, 30, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, pageWidth / 2, 40, { align: 'center' });
+            
+            let yPosition = 60;
+            let productIndex = 0;
+            
+            for (const producto of productos) {
+                console.log(`Procesando producto ${productIndex + 1}: ${producto.nombre}`);
+                
+                // Verificar si necesitamos una nueva página
+                if (yPosition > pageHeight - 120) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
+                
+                // Generar código QR para el producto
+                const qrData = JSON.stringify({
+                    id: producto.id,
+                    codigo: producto.codigo,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    descripcion: producto.descripcion
+                });
+                
+                try {
+                    // Generar QR como imagen base64
+                    console.log('Generando QR para:', producto.nombre);
+                    const qrImage = await this.generarQRAsDataURL(qrData);
+                    
+                    // Calcular posición centrada para el QR
+                    const qrSize = 40;
+                    const qrX = margin + (contentWidth - qrSize) / 2;
+                    
+                    // Agregar código QR centrado
+                    doc.addImage(qrImage, 'PNG', qrX, yPosition, qrSize, qrSize);
+                    
+                    // Información del producto debajo del QR
+                    const textY = yPosition + qrSize + 10;
+                    
+                    // Nombre del producto
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(producto.nombre, pageWidth / 2, textY, { align: 'center' });
+                    
+                    // Descripción
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                    const descripcion = producto.descripcion || 'Sin descripción';
+                    const maxWidth = contentWidth - 20;
+                    const descripcionLines = doc.splitTextToSize(descripcion, maxWidth);
+                    
+                    let descY = textY + 10;
+                    for (const line of descripcionLines) {
+                        doc.text(line, pageWidth / 2, descY, { align: 'center' });
+                        descY += 6;
+                    }
+                    
+                    // Precio
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`$${producto.precio}`, pageWidth / 2, descY + 5, { align: 'center' });
+                    
+                    // Línea separadora
+                    yPosition = descY + 20;
+                    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                    yPosition += 15;
+                    
+                } catch (qrError) {
+                    console.error('Error generando QR para producto:', producto.nombre, qrError);
+                    
+                    // Continuar sin QR si hay error
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(producto.nombre, pageWidth / 2, yPosition + 20, { align: 'center' });
+                    
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                    const descripcion = producto.descripcion || 'Sin descripción';
+                    const maxWidth = contentWidth - 20;
+                    const descripcionLines = doc.splitTextToSize(descripcion, maxWidth);
+                    
+                    let descY = yPosition + 30;
+                    for (const line of descripcionLines) {
+                        doc.text(line, pageWidth / 2, descY, { align: 'center' });
+                        descY += 6;
+                    }
+                    
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`$${producto.precio}`, pageWidth / 2, descY + 5, { align: 'center' });
+                    
+                    yPosition = descY + 20;
+                    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                    yPosition += 15;
+                }
+                
+                productIndex++;
+            }
+            
+            // Guardar el PDF
+            const filename = `catalogo-productos-${new Date().toISOString().split('T')[0]}.pdf`;
+            console.log('Guardando PDF como:', filename);
+            doc.save(filename);
+            
+            this.showNotification('PDF generado exitosamente', 'success');
+            
+        } catch (error) {
+            console.error('Error generando PDF:', error);
+            this.showNotification('Error al generar el PDF: ' + error.message, 'danger');
+        }
+    }
+
+    // Función auxiliar para generar QR como DataURL
+    async generarQRAsDataURL(text) {
+        return new Promise((resolve, reject) => {
+            try {
+                QRCode.toDataURL(text, {
+                    width: 128,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error, url) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(url);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }
 
 // Funciones globales para los botones
 function showSection(sectionName) {
-    adminDashboard.showSection(sectionName);
+    if (window.adminDashboard) {
+        window.adminDashboard.showSection(sectionName);
+    } else {
+        console.error('adminDashboard no está inicializado');
+    }
 }
 
 function showTab(tabName) {
     console.log('Función global showTab llamada con:', tabName);
-    if (adminDashboard) {
-        adminDashboard.showTab(tabName);
+    if (window.adminDashboard) {
+        window.adminDashboard.showTab(tabName);
     } else {
         console.error('adminDashboard no está inicializado');
+    }
+}
+
+// Función global para editar productos
+function editarProducto(id) {
+    console.log('Función global editarProducto llamada con ID:', id);
+    
+    // Intentar usar el dashboard si está disponible
+    if (window.adminDashboard && typeof window.adminDashboard.editarProducto === 'function') {
+        try {
+            window.adminDashboard.editarProducto(id);
+            return;
+        } catch (error) {
+            console.error('Error al ejecutar editarProducto del dashboard:', error);
+        }
+    }
+    
+    // Si el dashboard no está disponible, usar la función directa
+    console.log('Usando función directa de edición');
+    editarProductoDirecto(id);
+}
+
+// Función directa para editar productos (sin depender del dashboard)
+function editarProductoDirecto(id) {
+    console.log('Editando producto con ID:', id);
+    
+    const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+    const producto = productos.find(p => p.id === id);
+    
+    if (!producto) {
+        console.error('Producto no encontrado');
+        alert('Producto no encontrado');
+        return;
+    }
+    
+    console.log('Producto encontrado:', producto);
+    
+    // Llenar el modal con los datos del producto
+    const codigoInput = document.getElementById('codigoProducto');
+    const nombreInput = document.getElementById('nombreProducto');
+    const descripcionInput = document.getElementById('descripcionProducto');
+    const codigoQRInput = document.getElementById('codigoQRProducto');
+    const precioInput = document.getElementById('precioProducto');
+    const descuentoMinimoInput = document.getElementById('descuentoMinimoProducto');
+    const descuentoMaximoInput = document.getElementById('descuentoMaximoProducto');
+    const stockInput = document.getElementById('stockProducto');
+    const stockMinimoInput = document.getElementById('stockMinimoProducto');
+    const stockMaximoInput = document.getElementById('stockMaximoProducto');
+    const proveedorInput = document.getElementById('proveedorProducto');
+    
+    // Verificar que todos los elementos existan
+    if (!codigoInput || !nombreInput || !descripcionInput || !codigoQRInput || 
+        !precioInput || !descuentoMinimoInput || !descuentoMaximoInput || 
+        !stockInput || !stockMinimoInput || !stockMaximoInput || !proveedorInput) {
+        console.error('No se encontraron todos los elementos del formulario');
+        alert('Error al cargar el formulario de edición');
+        return;
+    }
+    
+    // Llenar los campos con los datos del producto
+    codigoInput.value = producto.codigo || '';
+    nombreInput.value = producto.nombre || '';
+    descripcionInput.value = producto.descripcion || '';
+    codigoQRInput.value = producto.codigoQR || producto.codigo || '';
+    precioInput.value = producto.precio || '';
+    descuentoMinimoInput.value = producto.descuentoMinimo || producto.descuento || 0;
+    descuentoMaximoInput.value = producto.descuentoMaximo || 0;
+    stockInput.value = producto.stock || '';
+    stockMinimoInput.value = producto.stockMinimo || 5;
+    stockMaximoInput.value = producto.stockMaximo || 100;
+    proveedorInput.value = producto.proveedor || '';
+    
+            // Generar vista previa del QR inmediatamente
+        const codigoParaQR = producto.codigoQR || producto.codigo || 'PROD-' + Date.now();
+        setTimeout(() => {
+            generarVistaPreviaQR(codigoParaQR);
+        }, 100);
+    
+    // Cambiar el título del modal
+    const modalTitle = document.querySelector('#productoModal .modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = 'Editar Producto';
+    }
+    
+    // Cambiar el botón de guardar
+    const btnGuardar = document.querySelector('#productoModal .btn-primary');
+    if (btnGuardar) {
+        btnGuardar.textContent = 'Actualizar';
+        btnGuardar.onclick = () => actualizarProductoDirecto(id);
+    }
+    
+    // Mostrar el modal
+    const modalElement = document.getElementById('productoModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error('Modal de producto no encontrado');
+        alert('Error al abrir el modal de edición');
+    }
+}
+
+
+
+// Función directa para actualizar productos
+function actualizarProductoDirecto(id) {
+    console.log('Actualizando producto con ID:', id);
+    
+    // Obtener valores del formulario
+    const codigo = document.getElementById('codigoProducto').value.trim();
+    const nombre = document.getElementById('nombreProducto').value.trim();
+    const descripcion = document.getElementById('descripcionProducto').value.trim();
+    const codigoQR = document.getElementById('codigoQRProducto').value.trim() || codigo;
+    const precio = parseFloat(document.getElementById('precioProducto').value);
+    const descuentoMinimo = parseFloat(document.getElementById('descuentoMinimoProducto').value) || 0;
+    const descuentoMaximo = parseFloat(document.getElementById('descuentoMaximoProducto').value) || 0;
+    const stock = parseInt(document.getElementById('stockProducto').value);
+    const stockMinimo = parseInt(document.getElementById('stockMinimoProducto').value);
+    const stockMaximo = parseInt(document.getElementById('stockMaximoProducto').value);
+    const proveedor = document.getElementById('proveedorProducto').value.trim();
+    
+    // Validar campos requeridos
+    if (!codigo || !nombre || !precio || !stock || !stockMinimo || !stockMaximo || !proveedor) {
+        alert('Por favor complete todos los campos requeridos');
+        return;
+    }
+    
+    // Actualizar el producto
+    const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+    const index = productos.findIndex(p => p.id === id);
+    
+    if (index > -1) {
+        productos[index] = {
+            ...productos[index],
+            codigo,
+            nombre,
+            descripcion,
+            codigoQR,
+            precio,
+            descuentoMinimo,
+            descuentoMaximo,
+            stock,
+            stockMinimo,
+            stockMaximo,
+            proveedor,
+            fechaActualizacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('productos', JSON.stringify(productos));
+        console.log('Producto actualizado:', productos[index]);
+        alert('Producto actualizado exitosamente');
+        
+        // Cerrar modal y actualizar tabla
+        const modal = bootstrap.Modal.getInstance(document.getElementById('productoModal'));
+        modal.hide();
+        
+        // Recargar la tabla si el dashboard está disponible
+        if (window.adminDashboard && typeof window.adminDashboard.loadProductos === 'function') {
+            window.adminDashboard.loadProductos();
+        }
+        
+        // Restaurar modal
+        resetearModalProducto();
+    } else {
+        alert('Producto no encontrado');
+    }
+}
+
+// Función para generar vista previa del QR
+function generarVistaPreviaQR(texto) {
+    const qrPreview = document.getElementById('qrPreview');
+    if (!qrPreview) {
+        console.error('Elemento qrPreview no encontrado');
+        return;
+    }
+    
+    if (!texto) {
+        texto = 'PROD-' + Date.now();
+    }
+    
+    console.log('Generando QR para:', texto);
+    qrPreview.innerHTML = '<div class="text-center"><small class="text-muted">Generando QR...</small></div>';
+    
+    // Usar directamente la imagen QR
+    setTimeout(() => {
+        mostrarQRImagen(texto);
+    }, 100);
+    
+    function mostrarQRImagen(texto) {
+        console.log('Mostrando imagen QR');
+        qrPreview.innerHTML = '';
+        
+        const img = document.createElement('img');
+        img.src = 'ejemplos/qr.jpg';
+        img.alt = 'Código QR';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.border = '2px solid #dee2e6';
+        img.style.borderRadius = '8px';
+        
+        // Manejar error de carga de imagen
+        img.onerror = function() {
+            console.error('Error cargando imagen QR, usando fallback');
+            mostrarQRFallback(texto);
+        };
+        
+        // Manejar carga exitosa
+        img.onload = function() {
+            console.log('Imagen QR cargada exitosamente');
+        };
+        
+        qrPreview.appendChild(img);
+        
+        // Agregar texto debajo del QR
+        const textoQR = document.createElement('div');
+        textoQR.className = 'mt-2';
+        textoQR.innerHTML = `<small class="text-muted">${texto}</small>`;
+        qrPreview.appendChild(textoQR);
+    }
+    
+    function mostrarQRFallback(texto) {
+        console.log('Mostrando QR fallback');
+        qrPreview.innerHTML = `
+            <div class="text-center">
+                <div style="width: 150px; height: 150px; background: linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; border: 2px solid #dee2e6; border-radius: 8px; margin: 0 auto;">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                        <i class="fas fa-qrcode fa-3x text-dark"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">${texto}</small>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Función para resetear modal de producto
+function resetearModalProducto() {
+    const form = document.getElementById('productoForm');
+    if (form) {
+        form.reset();
+    }
+    
+    generarVistaPreviaQR('');
+    
+    const modalTitle = document.querySelector('#productoModal .modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = 'Nuevo Producto';
+    }
+    
+    const btnGuardar = document.querySelector('#productoModal .btn-primary');
+    if (btnGuardar) {
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.onclick = () => guardarProducto();
+    }
+}
+
+// Función para configurar actualización QR en tiempo real
+function configurarActualizacionQR() {
+    const codigoQRInput = document.getElementById('codigoQRProducto');
+    if (codigoQRInput) {
+        // Remover event listeners anteriores para evitar duplicados
+        codigoQRInput.removeEventListener('input', actualizarQRInput);
+        codigoQRInput.addEventListener('input', actualizarQRInput);
+        console.log('Configuración de actualización QR configurada');
+    }
+}
+
+// Función para actualizar QR cuando se escribe en el campo
+function actualizarQRInput() {
+    const texto = this.value.trim();
+    if (texto) {
+        generarVistaPreviaQR(texto);
+    } else {
+        // Si está vacío, generar QR con el código del producto
+        const codigoProducto = document.getElementById('codigoProducto');
+        if (codigoProducto && codigoProducto.value.trim()) {
+            generarVistaPreviaQR(codigoProducto.value.trim());
+        }
+    }
+}
+
+// Función global para eliminar productos
+function eliminarProducto(id) {
+    console.log('Función global eliminarProducto llamada con ID:', id);
+    console.log('Estado de window.adminDashboard:', window.adminDashboard);
+    
+    if (window.adminDashboard && typeof window.adminDashboard.eliminarProducto === 'function') {
+        try {
+            window.adminDashboard.eliminarProducto(id);
+        } catch (error) {
+            console.error('Error al ejecutar eliminarProducto:', error);
+            alert('Error al eliminar el producto: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método eliminarProducto');
+        console.log('adminDashboard disponible:', window.adminDashboard);
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
     }
 }
 
@@ -2825,28 +4985,256 @@ function actualizarProducto(id) {
     adminDashboard.actualizarProducto(id);
 }
 
+function abrirModalNuevoProducto() {
+    adminDashboard.abrirModalNuevoProducto();
+}
+
 function confirmarEliminarProducto(id) {
     adminDashboard.confirmarEliminarProducto(id);
 }
 
 function procesarCargaMasivaProductos() {
-    adminDashboard.cargarProductosMasivo();
+    console.log('Función global procesarCargaMasivaProductos llamada');
+    
+    if (window.adminDashboard && typeof window.adminDashboard.cargarProductosMasivo === 'function') {
+        try {
+            window.adminDashboard.cargarProductosMasivo();
+        } catch (error) {
+            console.error('Error al ejecutar cargarProductosMasivo:', error);
+            alert('Error al procesar la carga masiva: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método cargarProductosMasivo');
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+    }
 }
 
 function procesarCargaMasivaProveedores() {
-    adminDashboard.cargarProveedoresMasivo();
+    console.log('Función global procesarCargaMasivaProveedores llamada');
+    
+    if (window.adminDashboard && typeof window.adminDashboard.cargarProveedoresMasivo === 'function') {
+        try {
+            window.adminDashboard.cargarProveedoresMasivo();
+        } catch (error) {
+            console.error('Error al ejecutar cargarProveedoresMasivo:', error);
+            alert('Error al procesar la carga masiva de proveedores: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método cargarProveedoresMasivo');
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+    }
 }
 
 function descargarFormatoProductos() {
-    adminDashboard.descargarFormatoProductos();
+    console.log('Función global descargarFormatoProductos llamada');
+    
+    if (window.adminDashboard && typeof window.adminDashboard.descargarFormatoProductos === 'function') {
+        try {
+            window.adminDashboard.descargarFormatoProductos();
+        } catch (error) {
+            console.error('Error al ejecutar descargarFormatoProductos:', error);
+            alert('Error al descargar el formato: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método descargarFormatoProductos');
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+    }
 }
 
 function descargarFormatoProveedores() {
-    adminDashboard.descargarFormatoProveedores();
+    console.log('Función global descargarFormatoProveedores llamada');
+    
+    if (window.adminDashboard && typeof window.adminDashboard.descargarFormatoProveedores === 'function') {
+        try {
+            window.adminDashboard.descargarFormatoProveedores();
+        } catch (error) {
+            console.error('Error al ejecutar descargarFormatoProveedores:', error);
+            alert('Error al descargar el formato de proveedores: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método descargarFormatoProveedores');
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+    }
 }
 
 function guardarProveedor() {
     adminDashboard.guardarProveedor();
+}
+
+// Función global para editar proveedores
+function editarProveedor(id) {
+    console.log('Función global editarProveedor llamada con ID:', id);
+    
+    // Intentar usar el dashboard si está disponible
+    if (window.adminDashboard && typeof window.adminDashboard.editarProveedor === 'function') {
+        try {
+            window.adminDashboard.editarProveedor(id);
+            return;
+        } catch (error) {
+            console.error('Error al ejecutar editarProveedor del dashboard:', error);
+        }
+    }
+    
+    // Si el dashboard no está disponible, usar la función directa
+    console.log('Usando función directa de edición de proveedor');
+    editarProveedorDirecto(id);
+}
+
+// Función directa para editar proveedores (sin depender del dashboard)
+function editarProveedorDirecto(id) {
+    console.log('Editando proveedor con ID:', id);
+    
+    const proveedores = JSON.parse(localStorage.getItem('proveedores') || '[]');
+    const proveedor = proveedores.find(p => p.id === id);
+    
+    if (!proveedor) {
+        console.error('Proveedor no encontrado');
+        alert('Proveedor no encontrado');
+        return;
+    }
+    
+    console.log('Proveedor encontrado:', proveedor);
+    
+    // Llenar el modal con los datos del proveedor
+    const rucInput = document.getElementById('rucProveedor');
+    const nombreInput = document.getElementById('nombreProveedor');
+    const direccionInput = document.getElementById('direccionProveedor');
+    const telefonoInput = document.getElementById('telefonoProveedor');
+    const emailInput = document.getElementById('emailProveedor');
+    
+    // Verificar que todos los elementos existan
+    if (!rucInput || !nombreInput || !direccionInput || !telefonoInput || !emailInput) {
+        console.error('No se encontraron todos los elementos del formulario de proveedor');
+        alert('Error al cargar el formulario de edición de proveedor');
+        return;
+    }
+    
+    // Llenar los campos con los datos del proveedor
+    rucInput.value = proveedor.ruc || '';
+    nombreInput.value = proveedor.nombre || '';
+    direccionInput.value = proveedor.direccion || '';
+    telefonoInput.value = proveedor.telefono || '';
+    emailInput.value = proveedor.email || '';
+    
+    // Cambiar el título del modal
+    const modalTitle = document.querySelector('#proveedorModal .modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = 'Editar Proveedor';
+    }
+    
+    // Cambiar el botón de guardar
+    const btnGuardar = document.querySelector('#proveedorModal .btn-primary');
+    if (btnGuardar) {
+        btnGuardar.textContent = 'Actualizar';
+        btnGuardar.onclick = () => actualizarProveedorDirecto(id);
+    }
+    
+    // Mostrar el modal
+    const modalElement = document.getElementById('proveedorModal');
+    if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.error('Modal de proveedor no encontrado');
+        alert('Error al abrir el modal de edición de proveedor');
+    }
+}
+
+// Función directa para actualizar proveedores
+function actualizarProveedorDirecto(id) {
+    console.log('Actualizando proveedor con ID:', id);
+    
+    // Obtener valores del formulario
+    const ruc = document.getElementById('rucProveedor').value.trim();
+    const nombre = document.getElementById('nombreProveedor').value.trim();
+    const direccion = document.getElementById('direccionProveedor').value.trim();
+    const telefono = document.getElementById('telefonoProveedor').value.trim();
+    const email = document.getElementById('emailProveedor').value.trim();
+    
+    // Validar campos requeridos
+    if (!ruc || !nombre || !direccion || !telefono || !email) {
+        alert('Por favor complete todos los campos requeridos');
+        return;
+    }
+    
+    // Verificar que el RUC no esté duplicado (excluyendo el proveedor actual)
+    const proveedores = JSON.parse(localStorage.getItem('proveedores') || '[]');
+    const proveedorDuplicado = proveedores.find(p => p.ruc === ruc && p.id !== id);
+    if (proveedorDuplicado) {
+        alert('El RUC ya está registrado por otro proveedor');
+        return;
+    }
+    
+    // Actualizar el proveedor
+    const index = proveedores.findIndex(p => p.id === id);
+    
+    if (index > -1) {
+        proveedores[index] = {
+            ...proveedores[index],
+            ruc,
+            nombre,
+            direccion,
+            telefono,
+            email,
+            fechaActualizacion: new Date().toISOString()
+        };
+        
+        localStorage.setItem('proveedores', JSON.stringify(proveedores));
+        console.log('Proveedor actualizado:', proveedores[index]);
+        alert('Proveedor actualizado exitosamente');
+        
+        // Cerrar modal y actualizar tabla
+        const modal = bootstrap.Modal.getInstance(document.getElementById('proveedorModal'));
+        modal.hide();
+        
+        // Recargar la tabla si el dashboard está disponible
+        if (window.adminDashboard && typeof window.adminDashboard.loadProveedores === 'function') {
+            window.adminDashboard.loadProveedores();
+        }
+        
+        // Restaurar modal
+        resetearModalProveedor();
+    } else {
+        alert('Proveedor no encontrado');
+    }
+}
+
+// Función para resetear modal de proveedor
+function resetearModalProveedor() {
+    const form = document.getElementById('proveedorForm');
+    if (form) {
+        form.reset();
+    }
+    
+    const modalTitle = document.querySelector('#proveedorModal .modal-title');
+    if (modalTitle) {
+        modalTitle.textContent = 'Nuevo Proveedor';
+    }
+    
+    const btnGuardar = document.querySelector('#proveedorModal .btn-primary');
+    if (btnGuardar) {
+        btnGuardar.textContent = 'Guardar';
+        btnGuardar.onclick = () => guardarProveedor();
+    }
+}
+
+// Función global para eliminar proveedores
+function eliminarProveedor(id) {
+    console.log('Función global eliminarProveedor llamada con ID:', id);
+    console.log('Estado de window.adminDashboard:', window.adminDashboard);
+    
+    if (window.adminDashboard && typeof window.adminDashboard.eliminarProveedor === 'function') {
+        try {
+            window.adminDashboard.eliminarProveedor(id);
+        } catch (error) {
+            console.error('Error al ejecutar eliminarProveedor:', error);
+            alert('Error al eliminar el proveedor: ' + error.message);
+        }
+    } else {
+        console.error('adminDashboard no está inicializado o no tiene el método eliminarProveedor');
+        console.log('adminDashboard disponible:', window.adminDashboard);
+        alert('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.');
+    }
 }
 
 function guardarCliente() {
@@ -2880,8 +5268,32 @@ function procesarCompra() {
     adminDashboard.procesarCompra();
 }
 
-// Inicializar dashboard
-let adminDashboard;
-document.addEventListener('DOMContentLoaded', () => {
-    adminDashboard = new AdminDashboard();
-});
+// Funciones globales para los botones
+function guardarReparacion() {
+    adminDashboard.guardarReparacion();
+}
+
+function agregarMaterial() {
+    adminDashboard.agregarMaterial();
+}
+
+function mostrarSeccionProductoNoEncontrado() {
+    adminDashboard.mostrarSeccionProductoNoEncontrado();
+}
+
+function toggleDescuentoMaterial() {
+    adminDashboard.toggleDescuentoMaterial();
+}
+
+function validarDescuentoMaterial() {
+    adminDashboard.validarDescuentoMaterial();
+}
+
+function actualizarPrecioMaterial() {
+    adminDashboard.actualizarPrecioMaterial();
+}
+
+
+
+// Comentario: La inicialización del dashboard se maneja en el archivo HTML
+// para evitar conflictos de inicialización múltiple

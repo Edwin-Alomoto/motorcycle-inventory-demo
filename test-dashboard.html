@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Test Dashboard</h1>
+        <button class="btn btn-primary" onclick="testInicializacion()">
+            <i class="fas fa-cog"></i> Test Inicialización
+        </button>
+        <button class="btn btn-success" onclick="testGenerarPDF()">
+            <i class="fas fa-file-pdf"></i> Test Generar PDF
+        </button>
+        
+        <div id="resultado" class="mt-3"></div>
+    </div>
+
+    <script>
+        let adminDashboard = null;
+        window.adminDashboard = null;
+
+        // Función para inicializar el dashboard
+        function inicializarDashboard() {
+            try {
+                console.log('Inicializando dashboard...');
+                adminDashboard = new AdminDashboard();
+                window.adminDashboard = adminDashboard;
+                console.log('Dashboard inicializado correctamente:', adminDashboard);
+                return true;
+            } catch (error) {
+                console.error('Error al inicializar dashboard:', error);
+                return false;
+            }
+        }
+
+        // Función para verificar si el dashboard está disponible
+        function verificarDashboard() {
+            console.log('Verificando dashboard...');
+            console.log('adminDashboard:', adminDashboard);
+            console.log('window.adminDashboard:', window.adminDashboard);
+            
+            if (!adminDashboard || !window.adminDashboard) {
+                console.error('Dashboard no disponible');
+                return false;
+            }
+            
+            const metodosRequeridos = [
+                'cargarProductosMasivo',
+                'cargarProveedoresMasivo',
+                'descargarFormatoProductos',
+                'descargarFormatoProveedores',
+                'generarPDFProductos',
+                'showNotification'
+            ];
+            
+            for (const metodo of metodosRequeridos) {
+                console.log(`Verificando método: ${metodo}`);
+                if (typeof adminDashboard[metodo] !== 'function') {
+                    console.error(`Método ${metodo} no disponible`);
+                    console.log(`Tipo de ${metodo}:`, typeof adminDashboard[metodo]);
+                    return false;
+                }
+                console.log(`Método ${metodo} OK`);
+            }
+            
+            console.log('Dashboard verificado correctamente');
+            return true;
+        }
+
+        function testInicializacion() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<div class="alert alert-info">Probando inicialización...</div>';
+            
+            try {
+                if (inicializarDashboard()) {
+                    if (verificarDashboard()) {
+                        resultado.innerHTML = '<div class="alert alert-success">Dashboard inicializado y verificado correctamente</div>';
+                    } else {
+                        resultado.innerHTML = '<div class="alert alert-warning">Dashboard inicializado pero no verificado correctamente</div>';
+                    }
+                } else {
+                    resultado.innerHTML = '<div class="alert alert-danger">Error al inicializar el dashboard</div>';
+                }
+            } catch (error) {
+                console.error('Error en test:', error);
+                resultado.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+            }
+        }
+
+        function testGenerarPDF() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<div class="alert alert-info">Probando generación de PDF...</div>';
+            
+            try {
+                if (!adminDashboard) {
+                    if (!inicializarDashboard()) {
+                        resultado.innerHTML = '<div class="alert alert-danger">No se pudo inicializar el dashboard</div>';
+                        return;
+                    }
+                }
+                
+                if (!verificarDashboard()) {
+                    resultado.innerHTML = '<div class="alert alert-danger">Dashboard no verificado correctamente</div>';
+                    return;
+                }
+                
+                console.log('Llamando a generarPDFProductos...');
+                adminDashboard.generarPDFProductos();
+                resultado.innerHTML = '<div class="alert alert-success">Función generarPDFProductos llamada exitosamente</div>';
+                
+            } catch (error) {
+                console.error('Error en test PDF:', error);
+                resultado.innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+            }
+        }
+
+        // Datos de prueba
+        const productosPrueba = [
+            {
+                id: '1',
+                codigo: 'PROD001',
+                nombre: 'Aceite de Motor 4T',
+                descripcion: 'Aceite sintético para motos 4 tiempos, 1L',
+                precio: 12.50,
+                stock: 45,
+                stockMinimo: 10,
+                stockMaximo: 100,
+                proveedor: 'MotoParts Ecuador S.A.'
+            },
+            {
+                id: '2',
+                codigo: 'PROD002',
+                nombre: 'Filtro de Aceite Honda',
+                descripcion: 'Filtro de aceite compatible con motos Honda',
+                precio: 8.75,
+                stock: 32,
+                stockMinimo: 15,
+                stockMaximo: 80,
+                proveedor: 'Repuestos Honda Guayaquil'
+            },
+            {
+                id: '3',
+                codigo: 'PROD003',
+                nombre: 'Batería 12V 7Ah',
+                descripcion: 'Batería de gel para motos, 12V 7Ah',
+                precio: 45.00,
+                stock: 3,
+                stockMinimo: 5,
+                stockMaximo: 50,
+                proveedor: 'Yamaha Parts Center'
+            }
+        ];
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM cargado, inicializando dashboard...');
+            
+            // Guardar productos de prueba en localStorage
+            localStorage.setItem('productos', JSON.stringify(productosPrueba));
+            
+            testInicializacion();
+        });
+    </script>
+</body>
+</html>

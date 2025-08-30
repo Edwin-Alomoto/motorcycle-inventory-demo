@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -253,11 +255,14 @@
                 <div id="productos-section" class="content-section" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="d-flex gap-2">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productoModal">
+                            <button class="btn btn-primary" onclick="abrirModalNuevoProducto()">
                                 <i class="fas fa-plus"></i> Nuevo Producto
                             </button>
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#cargaMasivaProductosModal">
                                 <i class="fas fa-upload"></i> Carga Masiva
+                            </button>
+                            <button class="btn btn-info" onclick="generarPDFProductos()">
+                                <i class="fas fa-file-pdf"></i> Descargar PDF
                             </button>
                         </div>
                     </div>
@@ -277,8 +282,8 @@
                                         <th>Nombre</th>
                                         <th>Descripción</th>
                                         <th>Precio</th>
-                                        <th>Descuento Mín.</th>
-                                        <th>Descuento Máx.</th>
+                                        <th>Descuento Mín. (%)</th>
+                                        <th>Descuento Máx. (%)</th>
                                         <th>Stock</th>
                                         <th>Estado</th>
                                         <th>Proveedor</th>
@@ -753,6 +758,22 @@
                             <textarea class="form-control" id="descripcionProducto" rows="3"></textarea>
                         </div>
                         <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codigoQRProducto" class="form-label">Código QR</label>
+                                    <input type="text" class="form-control" id="codigoQRProducto" placeholder="Ingrese el código QR del producto">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Vista Previa QR</label>
+                                    <div id="qrPreview" class="border rounded p-2 text-center" style="min-height: 120px; background-color: #f8f9fa;">
+                                        <!-- El QR por defecto se generará automáticamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="precioProducto" class="form-label">Precio</label>
@@ -761,14 +782,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="descuentoMinimoProducto" class="form-label">Descuento Mínimo</label>
-                                    <input type="number" class="form-control" id="descuentoMinimoProducto" step="0.01" value="0" min="0">
+                                    <label for="descuentoMinimoProducto" class="form-label">Descuento Mínimo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMinimoProducto" step="0.1" value="0" min="0" max="100">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="descuentoMaximoProducto" class="form-label">Descuento Máximo</label>
-                                    <input type="number" class="form-control" id="descuentoMaximoProducto" step="0.01" value="0" min="0">
+                                    <label for="descuentoMaximoProducto" class="form-label">Descuento Máximo (%)</label>
+                                    <input type="number" class="form-control" id="descuentoMaximoProducto" step="0.1" value="0" min="0" max="100">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -927,9 +948,10 @@
                                             <th>Código</th>
                                             <th>Nombre</th>
                                             <th>Descripción</th>
+                                            <th>Código QR</th>
                                             <th>Precio</th>
-                                            <th>Descuento Mín.</th>
-                                            <th>Descuento Máx.</th>
+                                            <th>Descuento Mín. (%)</th>
+                                            <th>Descuento Máx. (%)</th>
                                             <th>Stock</th>
                                             <th>Stock Mín.</th>
                                             <th>Stock Máx.</th>
@@ -942,6 +964,7 @@
                                             <td>PROD001</td>
                                             <td>Aceite 4T</td>
                                             <td>Aceite sintético 1L</td>
+                                            <td>PROD001</td>
                                             <td>15.99</td>
                                             <td>0.00</td>
                                             <td>0.00</td>
@@ -955,6 +978,7 @@
                                             <td>PROD002</td>
                                             <td>Filtro Aire</td>
                                             <td>Filtro de aire universal</td>
+                                            <td>PROD002</td>
                                             <td>8.50</td>
                                             <td>0.00</td>
                                             <td>0.00</td>
@@ -1199,33 +1223,161 @@
                             <textarea class="form-control" id="fallaReparacion" rows="3" required></textarea>
                         </div>
                         
-                                                 <!-- Sección de Fotografías de Evidencia -->
-                         <div class="mb-3">
-                             <label class="form-label">Fotografías de Evidencia</label>
-                             <div class="card">
-                                 <div class="card-header">
-                                     <h6 class="mb-0">Fotos Iniciales</h6>
-                                 </div>
-                                 <div class="card-body">
-                                     <div class="mb-2">
-                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="capturarFoto('fotosIniciales')">
-                                             <i class="fas fa-camera me-1"></i>Capturar Foto
-                                         </button>
-                                                                                   <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarArchivo('fotosIniciales')">
-                                              <i class="fas fa-upload me-1"></i>Subir Imágenes
-                                          </button>
-                                     </div>
-                                     <div id="fotosIniciales" class="fotos-container">
-                                         <!-- Las fotos se mostrarán aquí -->
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
+                        <!-- Sección de Fotografías de Evidencia -->
+                        <div class="mb-3">
+                            <label class="form-label">Fotografías de Evidencia</label>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Fotos Iniciales</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="capturarFoto('fotosIniciales')">
+                                            <i class="fas fa-camera me-1"></i>Capturar Foto
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarArchivo('fotosIniciales')">
+                                            <i class="fas fa-upload me-1"></i>Subir Imágenes
+                                        </button>
+                                    </div>
+                                    <div id="fotosIniciales" class="fotos-container">
+                                        <!-- Las fotos se mostrarán aquí -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="guardarReparacion()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Materiales Reparación -->
+    <div class="modal fade" id="materialesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Materiales</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="materialesForm">
+                        <div class="mb-3">
+                            <label for="productoMaterial" class="form-label">Producto/Material</label>
+                            <select class="form-select" id="productoMaterial" onchange="actualizarPrecioMaterial()">
+                                <option value="">Seleccionar producto</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Si el producto no está en la lista, puede agregarlo manualmente
+                            </div>
+                        </div>
+                        
+                        <!-- Sección para producto no encontrado -->
+                        <div class="mb-3" id="productoNoEncontradoSection" style="display: none;">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Producto no encontrado en inventario</strong>
+                                <p class="mb-2 mt-2">Complete los datos del producto para solicitar su adquisición:</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nuevoProductoNombre" class="form-label">Nombre del Producto</label>
+                                        <input type="text" class="form-control" id="nuevoProductoNombre" placeholder="Ej: Filtro de aceite Honda">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nuevoProductoDescripcion" class="form-label">Descripción</label>
+                                        <input type="text" class="form-control" id="nuevoProductoDescripcion" placeholder="Descripción del producto">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nuevoProductoPrecio" class="form-label">Precio Estimado</label>
+                                        <input type="number" class="form-control" id="nuevoProductoPrecio" step="0.01" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nuevoProductoProveedor" class="form-label">Proveedor Sugerido</label>
+                                        <input type="text" class="form-control" id="nuevoProductoProveedor" placeholder="Nombre del proveedor">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cantidadMaterial" class="form-label">Cantidad</label>
+                                    <input type="number" class="form-control" id="cantidadMaterial" min="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="precioMaterial" class="form-label">Precio Unitario</label>
+                                    <input type="number" class="form-control" id="precioMaterial" step="0.01" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Descuento</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2" 
+                                               id="check_descuento_material" 
+                                               onchange="toggleDescuentoMaterial()">
+                                        <input type="number" class="form-control" 
+                                               id="descuentoMaterial" 
+                                               min="0" max="100" step="0.01"
+                                               value="0" placeholder="%" disabled
+                                               oninput="validarDescuentoMaterial()">
+                                    </div>
+                                    <div class="form-text" id="descuentoMaterialInfo" style="display: none;">
+                                        <i class="fas fa-info-circle me-1 text-primary"></i>
+                                        <small>Descuento máximo permitido: <span id="descuentoMaximoPermitido">20%</span></small>
+                                    </div>
+                                    <div class="text-danger" id="descuentoMaterialError" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <small id="descuentoErrorTexto"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="observacionesMaterial" class="form-label">Observaciones</label>
+                                    <textarea class="form-control" id="observacionesMaterial" rows="1"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón para buscar producto no encontrado -->
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-warning" id="btnProductoNoEncontrado" onclick="mostrarSeccionProductoNoEncontrado()">
+                                <i class="fas fa-plus-circle me-1"></i>
+                                Producto no encontrado en inventario
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <h6>Materiales Registrados</h6>
+                        <div id="materialesRegistrados">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="agregarMaterial()">Agregar Material</button>
                 </div>
             </div>
         </div>
@@ -1354,14 +1506,41 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="observacionesMaterial" class="form-label">Observaciones</label>
-                            <textarea class="form-control" id="observacionesMaterial" rows="3"></textarea>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Descuento</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2" 
+                                               id="check_descuento_material" 
+                                               onchange="toggleDescuentoMaterial()">
+                                        <input type="number" class="form-control" 
+                                               id="descuentoMaterial" 
+                                               min="0" max="100" step="0.01"
+                                               value="0" placeholder="%" disabled
+                                               oninput="validarDescuentoMaterial()">
+                                    </div>
+                                    <div class="form-text" id="descuentoMaterialInfo" style="display: none;">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <small>Descuento máximo permitido: <span id="descuentoMaximoPermitido">20%</span></small>
+                                    </div>
+                                    <div class="text-danger" id="descuentoMaterialError" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <small id="descuentoErrorTexto"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="observacionesMaterial" class="form-label">Observaciones</label>
+                                    <textarea class="form-control" id="observacionesMaterial" rows="1"></textarea>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Botón para buscar producto no encontrado -->
                         <div class="mb-3">
-                            <button type="button" class="btn btn-outline-warning" id="btnProductoNoEncontrado">
+                            <button type="button" class="btn btn-outline-warning" id="btnProductoNoEncontrado" onclick="mostrarSeccionProductoNoEncontrado()">
                                 <i class="fas fa-plus-circle me-1"></i>
                                 Producto no encontrado en inventario
                             </button>
@@ -1405,22 +1584,487 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/foto-manager.js"></script>
+    <script src="qr-generator-simple-fixed.js"></script>
     <script src="js/admin-dashboard.js"></script>
     
     <script>
-        // Inicializar el dashboard cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', () => {
-            // Crear instancia del dashboard
-            window.adminDashboard = new AdminDashboard();
-            
-            // Evento para resetear el modal de cliente cuando se cierre
-            const clienteModal = document.getElementById('clienteModal');
-            clienteModal.addEventListener('hidden.bs.modal', () => {
-                if (window.adminDashboard) {
-                    window.adminDashboard.resetearModalCliente();
+        // Variable global para el dashboard
+        let adminDashboard = null;
+        
+        // Función para inicializar el dashboard
+        function inicializarDashboard() {
+            try {
+                console.log('Inicializando dashboard...');
+                console.log('AdminDashboard disponible:', typeof AdminDashboard);
+                
+                if (typeof AdminDashboard === 'undefined') {
+                    console.error('Error: La clase AdminDashboard no está disponible');
+                    return false;
                 }
-            });
+                
+                adminDashboard = new AdminDashboard();
+                window.adminDashboard = adminDashboard;
+                console.log('Dashboard inicializado correctamente:', adminDashboard);
+                console.log('adminDashboard después de inicialización:', adminDashboard);
+                console.log('window.adminDashboard después de inicialización:', window.adminDashboard);
+                return true;
+            } catch (error) {
+                console.error('Error al inicializar dashboard:', error);
+                console.error('Stack trace:', error.stack);
+                return false;
+            }
+        }
+        
+        // Función para verificar si el dashboard está disponible
+        function verificarDashboard() {
+            console.log('Verificando dashboard...');
+            console.log('adminDashboard:', adminDashboard);
+            console.log('window.adminDashboard:', window.adminDashboard);
+            
+            if (!adminDashboard || !window.adminDashboard) {
+                console.error('Dashboard no disponible');
+                return false;
+            }
+            
+            const metodosRequeridos = [
+                'cargarProductosMasivo',
+                'cargarProveedoresMasivo',
+                'descargarFormatoProductos',
+                'descargarFormatoProveedores',
+                'generarPDFProductos',
+                'showNotification'
+            ];
+            
+            for (const metodo of metodosRequeridos) {
+                console.log(`Verificando método: ${metodo}`);
+                if (typeof adminDashboard[metodo] !== 'function') {
+                    console.error(`Método ${metodo} no disponible`);
+                    console.log(`Tipo de ${metodo}:`, typeof adminDashboard[metodo]);
+                    return false;
+                }
+                console.log(`Método ${metodo} OK`);
+            }
+            
+            console.log('Dashboard verificado correctamente');
+            return true;
+        }
+        
+        // Función para mostrar notificación
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+            if (adminDashboard && typeof adminDashboard.showNotification === 'function') {
+                adminDashboard.showNotification(mensaje, tipo);
+            } else {
+                alert(mensaje);
+            }
+        }
+        
+        // Función para descargar formato de productos
+        function descargarFormatoProductos() {
+            console.log('Descargando formato de productos...');
+            
+            if (!verificarDashboard()) {
+                mostrarNotificacion('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.', 'danger');
+                return;
+            }
+            
+            try {
+                // Crear contenido CSV con headers y ejemplos
+                const csvContent = `sep=;
+codigo;nombre;descripcion;codigoQR;precio;descuentoMinimo;descuentoMaximo;stock;stockMinimo;stockMaximo;estado;proveedor
+PROD001;Aceite de Motor 4T;Aceite sintético para motos 4T 1L;PROD001;15.50;0.00;0.00;50;5;100;Activo;Aceites Pro
+PROD002;Filtro de Aire;Filtro de aire de alta calidad universal;PROD002;8.75;0.00;0.00;30;5;100;Activo;Filtros Max
+PROD003;Pastillas de Freno;Par de pastillas de freno delantero;PROD003;12.00;0.00;0.00;25;5;100;Activo;Frenos Seguros
+PROD004;Cadena de Transmisión;Cadena de transmisión 520 para motos;PROD004;45.00;0.00;0.00;15;5;100;Activo;Transmisiones Rápidas
+PROD005;Bujía NGK;Bujía NGK CR8E para motos;PROD005;5.25;0.00;0.00;100;5;100;Activo;Bujías Elite`;
+                
+                // Crear blob con BOM para Excel
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'formato_productos.csv');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                
+                mostrarNotificacion('Formato CSV descargado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al descargar formato:', error);
+                mostrarNotificacion('Error al descargar el formato: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función para descargar formato de proveedores
+        function descargarFormatoProveedores() {
+            console.log('Descargando formato de proveedores...');
+            
+            if (!verificarDashboard()) {
+                mostrarNotificacion('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.', 'danger');
+                return;
+            }
+            
+            try {
+                // Crear contenido CSV con headers y ejemplos
+                const csvContent = `sep=;
+ruc;nombre;direccion;telefono;email
+1234567890001;Aceites Pro;Av. Principal 123, Quito;02-234-5678;info@aceitespro.com
+1234567890002;Filtros Max;Calle Comercial 456, Guayaquil;04-345-6789;ventas@filtrosmax.com
+1234567890003;Frenos Seguros;Plaza Central 789, Cuenca;07-456-7890;contacto@frenosseguros.com
+1234567890004;Transmisiones Rápidas;Av. Industrial 321, Manta;05-567-8901;info@transmisionesrapidas.com
+1234567890005;Bujías Elite;Calle Técnica 654, Ambato;03-678-9012;ventas@bujiaselite.com`;
+                
+                // Crear blob con BOM para Excel
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'formato_proveedores.csv');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+                
+                mostrarNotificacion('Formato CSV descargado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al descargar formato:', error);
+                mostrarNotificacion('Error al descargar el formato: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función para procesar carga masiva de productos
+        function procesarCargaMasivaProductos() {
+            console.log('Procesando carga masiva de productos...');
+            
+            if (!verificarDashboard()) {
+                mostrarNotificacion('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.', 'danger');
+                return;
+            }
+            
+            try {
+                adminDashboard.cargarProductosMasivo();
+            } catch (error) {
+                console.error('Error al procesar carga masiva:', error);
+                mostrarNotificacion('Error al procesar la carga masiva: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función para procesar carga masiva de proveedores
+        function procesarCargaMasivaProveedores() {
+            console.log('Procesando carga masiva de proveedores...');
+            
+            if (!verificarDashboard()) {
+                mostrarNotificacion('Error: El sistema no está inicializado correctamente. Por favor, recarga la página.', 'danger');
+                return;
+            }
+            
+            try {
+                adminDashboard.cargarProveedoresMasivo();
+            } catch (error) {
+                console.error('Error al procesar carga masiva:', error);
+                mostrarNotificacion('Error al procesar la carga masiva: ' + error.message, 'danger');
+            }
+        }
+        
+        // Agregar datos de ejemplo si no existen
+        function agregarDatosEjemplo() {
+            const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+            if (productos.length === 0) {
+                const productosEjemplo = [
+                    {
+                        id: '1',
+                        codigo: 'PROD001',
+                        nombre: 'Aceite de Motor 4T',
+                        descripcion: 'Aceite sintético para motos 4 tiempos, 1L. Ideal para motocicletas de alto rendimiento.',
+                        precio: 12.50,
+                        stock: 45,
+                        stockMinimo: 10,
+                        stockMaximo: 100,
+                        proveedor: 'MotoParts Ecuador S.A.'
+                    },
+                    {
+                        id: '2',
+                        codigo: 'PROD002',
+                        nombre: 'Filtro de Aceite Honda',
+                        descripcion: 'Filtro de aceite compatible con motos Honda. Alta calidad y durabilidad garantizada.',
+                        precio: 8.75,
+                        stock: 32,
+                        stockMinimo: 15,
+                        stockMaximo: 80,
+                        proveedor: 'Repuestos Honda Guayaquil'
+                    },
+                    {
+                        id: '3',
+                        codigo: 'PROD003',
+                        nombre: 'Batería 12V 7Ah',
+                        descripcion: 'Batería de gel para motos, 12V 7Ah. Tecnología avanzada para mayor vida útil.',
+                        precio: 45.00,
+                        stock: 3,
+                        stockMinimo: 5,
+                        stockMaximo: 50,
+                        proveedor: 'Yamaha Parts Center'
+                    }
+                ];
+                localStorage.setItem('productos', JSON.stringify(productosEjemplo));
+                console.log('Productos de ejemplo agregados');
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM cargado, inicializando dashboard...');
+            
+            // Agregar datos de ejemplo si no existen
+            agregarDatosEjemplo();
+            
+            // Intentar inicializar el dashboard
+            if (inicializarDashboard()) {
+                console.log('Dashboard inicializado exitosamente');
+                
+                // Evento para resetear el modal de cliente cuando se cierre
+                const clienteModal = document.getElementById('clienteModal');
+                if (clienteModal) {
+                    clienteModal.addEventListener('hidden.bs.modal', () => {
+                        if (adminDashboard && typeof adminDashboard.resetearModalCliente === 'function') {
+                            adminDashboard.resetearModalCliente();
+                        }
+                    });
+                }
+                
+                // Configurar event listeners para modales
+                setTimeout(() => {
+                    // Event listener para modal de productos
+                    const productoModal = document.getElementById('productoModal');
+                    if (productoModal) {
+                        productoModal.addEventListener('hidden.bs.modal', () => {
+                            if (typeof resetearModalProducto === 'function') {
+                                resetearModalProducto();
+                            }
+                        });
+                    }
+                    
+                    // Event listener para modal de proveedores
+                    const proveedorModal = document.getElementById('proveedorModal');
+                    if (proveedorModal) {
+                        proveedorModal.addEventListener('hidden.bs.modal', () => {
+                            if (typeof resetearModalProveedor === 'function') {
+                                resetearModalProveedor();
+                            }
+                        });
+                    }
+                }, 500);
+                
+            } else {
+                console.error('No se pudo inicializar el dashboard');
+                mostrarNotificacion('Error al inicializar el sistema. Por favor, recarga la página.', 'danger');
+            }
         });
+        
+        // Función de respaldo para reinicializar si es necesario
+        function reinicializarDashboard() {
+            console.log('Reinicializando dashboard...');
+            adminDashboard = null;
+            window.adminDashboard = null;
+            
+            if (inicializarDashboard()) {
+                mostrarNotificacion('Sistema reinicializado correctamente', 'success');
+            } else {
+                mostrarNotificacion('Error al reinicializar el sistema', 'danger');
+            }
+        }
+        
+        // Función para cargar imagen QR por defecto
+        async function cargarImagenQRPorDefecto() {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    try {
+                        const dataURL = canvas.toDataURL('image/jpeg');
+                        resolve(dataURL);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                img.onerror = function() {
+                    reject(new Error('No se pudo cargar la imagen QR'));
+                };
+                
+                img.src = 'ejemplos/qr.jpg';
+            });
+        }
+
+        // Función independiente para generar PDF de productos
+        async function generarPDFProductos() {
+            console.log('Generando PDF de productos...');
+            
+            try {
+                // Obtener productos directamente del localStorage
+                const productos = JSON.parse(localStorage.getItem('productos') || '[]');
+                console.log('Productos encontrados:', productos.length);
+                
+                if (productos.length === 0) {
+                    alert('No hay productos para generar el PDF');
+                    return;
+                }
+
+                // Verificar que jsPDF esté disponible
+                if (typeof window.jspdf === 'undefined') {
+                    alert('Error: jsPDF no está disponible');
+                    return;
+                }
+
+                alert('Generando PDF con códigos QR...');
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Configuración del documento
+                const pageWidth = doc.internal.pageSize.width;
+                const pageHeight = doc.internal.pageSize.height;
+                const margin = 20;
+                const contentWidth = pageWidth - (margin * 2);
+                
+                // Cargar imagen QR una sola vez
+                console.log('Cargando imagen QR por defecto...');
+                const qrImage = await cargarImagenQRPorDefecto();
+                console.log('Imagen QR cargada exitosamente');
+                
+                // Título del documento
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Catálogo de Productos', pageWidth / 2, 20, { align: 'center' });
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, pageWidth / 2, 28, { align: 'center' });
+                
+                // Configuración de cuadrícula: 4 columnas x 2 filas = 8 productos por página
+                const cols = 4;
+                const rows = 2;
+                const productsPerPage = cols * rows;
+                
+                // Calcular dimensiones de cada celda
+                const cellWidth = contentWidth / cols;
+                const cellHeight = (pageHeight - 50) / rows; // 50 para título y margen inferior
+                const qrSize = 30;
+                const padding = 5;
+                
+                let productIndex = 0;
+                let currentPage = 0;
+                
+                for (let i = 0; i < productos.length; i += productsPerPage) {
+                    // Agregar nueva página si no es la primera
+                    if (currentPage > 0) {
+                        doc.addPage();
+                        // Repetir título en cada página
+                        doc.setFontSize(20);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Catálogo de Productos', pageWidth / 2, 20, { align: 'center' });
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')} - Página ${currentPage + 1}`, pageWidth / 2, 28, { align: 'center' });
+                    }
+                    
+                    // Procesar productos para esta página
+                    const pageProducts = productos.slice(i, i + productsPerPage);
+                    
+                    for (let j = 0; j < pageProducts.length; j++) {
+                        const producto = pageProducts[j];
+                        console.log(`Procesando producto ${productIndex + 1}: ${producto.nombre}`);
+                        
+                        // Calcular posición en la cuadrícula
+                        const col = j % cols;
+                        const row = Math.floor(j / cols);
+                        
+                        // Calcular coordenadas
+                        const cellX = margin + (col * cellWidth);
+                        const cellY = 40 + (row * cellHeight);
+                        
+                        // Centrar QR en la celda
+                        const qrX = cellX + (cellWidth - qrSize) / 2;
+                        const qrY = cellY + padding;
+                        
+                        // Agregar código QR
+                        doc.addImage(qrImage, 'JPEG', qrX, qrY, qrSize, qrSize);
+                        
+                        // Información del producto debajo del QR
+                        const textY = qrY + qrSize + 5;
+                        const textCenterX = cellX + cellWidth / 2;
+                        const maxTextWidth = cellWidth - (padding * 2);
+                        
+                        // Nombre del producto
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'bold');
+                        const nombreLines = doc.splitTextToSize(producto.nombre, maxTextWidth);
+                        let currentTextY = textY;
+                        for (const line of nombreLines.slice(0, 2)) { // Máximo 2 líneas para el nombre
+                            doc.text(line, textCenterX, currentTextY, { align: 'center' });
+                            currentTextY += 4;
+                        }
+                        
+                        // Descripción (máximo 3 líneas)
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'normal');
+                        const descripcion = producto.descripcion || 'Sin descripción';
+                        const descripcionLines = doc.splitTextToSize(descripcion, maxTextWidth);
+                        
+                        currentTextY += 2;
+                        for (const line of descripcionLines.slice(0, 3)) { // Máximo 3 líneas para descripción
+                            doc.text(line, textCenterX, currentTextY, { align: 'center' });
+                            currentTextY += 3;
+                        }
+                        
+                        // Precio
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`$${producto.precio}`, textCenterX, currentTextY + 4, { align: 'center' });
+                        
+                        // Bordes de celda (opcional para debug)
+                        // doc.rect(cellX, cellY, cellWidth, cellHeight);
+                        
+                        productIndex++;
+                    }
+                    
+                    currentPage++;
+                }
+                
+                // Guardar el PDF
+                const filename = `catalogo-productos-${new Date().toISOString().split('T')[0]}.pdf`;
+                console.log('Guardando PDF como:', filename);
+                doc.save(filename);
+                
+                alert('PDF generado exitosamente');
+                
+            } catch (error) {
+                console.error('Error generando PDF:', error);
+                alert('Error al generar el PDF: ' + error.message);
+            }
+        }
+
+        // Hacer las funciones disponibles globalmente
+        window.descargarFormatoProductos = descargarFormatoProductos;
+        window.descargarFormatoProveedores = descargarFormatoProveedores;
+        window.procesarCargaMasivaProductos = procesarCargaMasivaProductos;
+        window.procesarCargaMasivaProveedores = procesarCargaMasivaProveedores;
+        window.generarPDFProductos = generarPDFProductos;
+        window.reinicializarDashboard = reinicializarDashboard;
     </script>
 </body>
 </html>
